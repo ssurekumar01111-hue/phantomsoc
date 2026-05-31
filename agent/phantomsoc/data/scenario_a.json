@@ -1,0 +1,25 @@
+{
+  "alert_id": "ALT-20240520-001",
+  "timestamp": "2024-05-20T14:32:00Z",
+  "source_ip": "185.220.101.47",
+  "destination": "internal-db-01:5432",
+  "event_type": "repeated_auth_failure",
+  "raw_logs": [
+    "2024-05-20T14:32:01Z FAILED LOGIN admin from 185.220.101.47",
+    "2024-05-20T14:32:03Z FAILED LOGIN admin from 185.220.101.47",
+    "2024-05-20T14:32:07Z FAILED LOGIN admin from 185.220.101.47",
+    "2024-05-20T14:33:58Z FAILED LOGIN admin from 185.220.101.47",
+    "2024-05-20T14:34:17Z SUCCESS LOGIN admin from 185.220.101.47",
+    "2024-05-20T14:35:02Z PROCESS powershell.exe -enc JABjAGwAaQBlAG4AdA==",
+    "2024-05-20T14:38:45Z DB QUERY SELECT * FROM customers LIMIT 50000",
+    "2024-05-20T14:41:00Z OUTBOUND 185.220.101.47:443 bytes=838860800"
+  ],
+  "geolocation": {
+    "country": "RU",
+    "asn": "AS60068"
+  },
+  "user_context": {
+    "username": "admin",
+    "last_login": "2024-05-19T09:00:00Z"
+  }
+}

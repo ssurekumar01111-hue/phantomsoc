@@ -1,0 +1,22 @@
+{
+  "alert_id": "ALT-20240523-004",
+  "timestamp": "2024-05-23T09:15:00Z",
+  "source_ip": "192.168.1.105",
+  "destination": "internal-hr-db:5432",
+  "event_type": "insider_data_access",
+  "raw_logs": [
+    "2024-05-23T09:15:00Z LOGIN finance_user from 192.168.1.105 SUCCESS",
+    "2024-05-23T09:45:10Z DB ACCESS finance_user -> hr_database (outside role)",
+    "2024-05-23T10:02:33Z DB QUERY SELECT * FROM employees LIMIT 12000",
+    "2024-05-23T10:15:00Z USB_MOUNT detected on workstation 192.168.1.105",
+    "2024-05-23T10:18:22Z FILE_COPY 12000 records -> USB device E:\\"
+  ],
+  "geolocation": {
+    "country": "IN",
+    "asn": "AS9829"
+  },
+  "user_context": {
+    "username": "finance_user",
+    "last_login": "2024-05-22T17:30:00Z"
+  }
+}

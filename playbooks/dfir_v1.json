@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "description": "Initial DFIR investigation checklist",
+  "checklist": [
+    {
+      "category": "timeline",
+      "required": true,
+      "priority": 1,
+      "note": "Reconstruct full chronological event sequence"
+    },
+    {
+      "category": "ioc_extraction",
+      "required": true,
+      "priority": 1,
+      "note": "Extract all IPs, domains, hashes, usernames, techniques"
+    },
+    {
+      "category": "attack_chain",
+      "required": true,
+      "priority": 1,
+      "note": "Map to MITRE ATT&CK kill chain stages"
+    },
+    {
+      "category": "lateral_movement",
+      "required": true,
+      "priority": 2,
+      "note": "Check for movement to other internal systems"
+    },
+    {
+      "category": "persistence",
+      "required": true,
+      "priority": 2,
+      "note": "Check Run keys, scheduled tasks, startup items, WMI"
+    },
+    {
+      "category": "exfiltration",
+      "required": true,
+      "priority": 2,
+      "note": "Assess data volume, destination, and sensitivity"
+    },
+    {
+      "category": "attribution",
+      "required": false,
+      "priority": 3,
+      "note": "Identify threat actor indicators if possible"
+    }
+  ]
+}

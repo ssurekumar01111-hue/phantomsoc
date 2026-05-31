@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+venv/
+data/memory.db
+reports/
+*.db
+*.sqlite
+test_phoenix.py
+.gemini/settings.json

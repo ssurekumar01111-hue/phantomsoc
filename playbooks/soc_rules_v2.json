@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "description": "Initial SOC triage detection rules",
+  "high_risk_asns": [
+    "AS60068",
+    "AS209588",
+    "AS396507"
+  ],
+  "high_risk_countries": [
+    "RU",
+    "CN",
+    "KP",
+    "IR"
+  ],
+  "internal_ip_ranges": [
+    "10.0.0.0/8",
+    "192.168.0.0/16",
+    "172.16.0.0/12"
+  ],
+  "authorized_pentest_ranges": [
+    "10.0.0.0/24"
+  ],
+  "threat_score_weights": {
+    "high_risk_asn": 25,
+    "high_risk_country": 15,
+    "off_hours_login": 10,
+    "repeated_auth_failure": 20,
+    "powershell_execution": 15,
+    "large_data_transfer": 20,
+    "known_pentest_tool": -40
+  },
+  "escalation_threshold": 60,
+  "false_positive_threshold": 20,
+  "generated_by": "learning_agent",
+  "improvements": [
+    "Mandate enrichment fields: Force response schema to include 'ASN_Reputation_Check', 'Geolocation_Analysis', and 'Investigation_Context_Match_Rate'.",
+    "Add negative weighting: Apply a -20 penalty to the threat score if an investigation fails to reference prior incident memory or lookup history.",
+    "Require evidence citations for all high-risk triggers to prevent automated 'check-the-box' behavior."
+  ]
+}

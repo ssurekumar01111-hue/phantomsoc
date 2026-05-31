@@ -1,0 +1,10 @@
+google-generativeai
+google-adk
+arize-phoenix
+openinference-instrumentation-google-genai
+openinference-instrumentation-google-adk
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+pydantic
+python-dotenv
+rich

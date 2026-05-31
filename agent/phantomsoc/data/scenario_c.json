@@ -1,0 +1,22 @@
+{
+  "alert_id": "ALT-20240522-003",
+  "timestamp": "2024-05-22T11:00:00Z",
+  "source_ip": "10.0.0.50",
+  "destination": "internal-web-01:80",
+  "event_type": "port_scan",
+  "raw_logs": [
+    "2024-05-22T11:00:01Z PORTSCAN 10.0.0.50 -> internal-web-01 ports=1-65535",
+    "2024-05-22T11:01:15Z WEB FUZZING 10.0.0.50 tool=gobuster wordlist=common.txt",
+    "2024-05-22T11:03:44Z SCAN 10.0.0.50 tool=nmap -sV -sC",
+    "2024-05-22T11:05:00Z WEB REQUEST 10.0.0.50 path=/.env status=200",
+    "2024-05-22T11:05:10Z WEB REQUEST 10.0.0.50 path=/admin status=403"
+  ],
+  "geolocation": {
+    "country": "IN",
+    "asn": "AS9829"
+  },
+  "user_context": {
+    "username": "pentest_user",
+    "last_login": "2024-05-22T10:55:00Z"
+  }
+}

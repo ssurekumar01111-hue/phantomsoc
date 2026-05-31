@@ -1,0 +1,23 @@
+{
+  "alert_id": "ALT-20240521-002",
+  "timestamp": "2024-05-21T09:15:00Z",
+  "source_ip": "185.220.101.47",
+  "destination": "internal-hr-01:5432",
+  "event_type": "repeated_auth_failure",
+  "raw_logs": [
+    "2024-05-21T09:15:01Z FAILED LOGIN hr_admin from 185.220.101.47",
+    "2024-05-21T09:15:04Z FAILED LOGIN hr_admin from 185.220.101.47",
+    "2024-05-21T09:16:22Z SUCCESS LOGIN hr_admin from 185.220.101.47",
+    "2024-05-21T09:17:10Z PROCESS powershell.exe -enc SGVsbG8gV29ybGQ=",
+    "2024-05-21T09:20:33Z DB QUERY SELECT * FROM employees LIMIT 12000",
+    "2024-05-21T09:23:00Z OUTBOUND 185.220.101.47:443 bytes=209715200"
+  ],
+  "geolocation": {
+    "country": "RU",
+    "asn": "AS60068"
+  },
+  "user_context": {
+    "username": "hr_admin",
+    "last_login": "2024-05-20T17:30:00Z"
+  }
+}
