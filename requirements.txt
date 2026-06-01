@@ -1,4 +1,4 @@
-google-generativeai
+google-genai
 google-adk
 arize-phoenix
 openinference-instrumentation-google-genai
@@ -8,3 +8,4 @@ opentelemetry-exporter-otlp
 pydantic
 python-dotenv
 rich
+google-cloud-storage

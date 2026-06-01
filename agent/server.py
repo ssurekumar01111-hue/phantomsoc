@@ -94,6 +94,27 @@ class PhantomSOCHandler(BaseHTTPRequestHandler):
             })
         elif self.path == "/health":
             self._send_json(200, {"status": "healthy"})
+        elif self.path == "/reports":
+            try:
+                bucket_name = os.getenv("GCS_BUCKET", "")
+                if bucket_name:
+                    from google.cloud import storage
+                    client = storage.Client()
+                    bucket = client.bucket(bucket_name)
+                    blobs = list(bucket.list_blobs(prefix="reports/"))
+                    reports = [b.name for b in blobs]
+                    self._send_json(200, {
+                        "reports": reports,
+                        "count": len(reports),
+                        "bucket": bucket_name
+                    })
+                else:
+                    self._send_json(200, {
+                        "reports": [],
+                        "message": "GCS not configured"
+                    })
+            except Exception as e:
+                self._send_json(500, {"error": str(e)})
         elif self.path == "/dashboard":
             try:
                 with open("dashboard.html", "rb") as f:

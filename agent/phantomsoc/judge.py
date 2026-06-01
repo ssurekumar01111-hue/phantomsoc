@@ -1,13 +1,10 @@
 import os
 import json
 from dotenv import load_dotenv
-import google.generativeai as genai
 from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
 
 load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-
 
 def detect_confidence_drift(investigation_id: str,
                              agent_confidence: float,
@@ -45,11 +42,9 @@ def run_judge(soc_report: dict,
     print("LLM JUDGE — EVALUATION")
     print("="*60)
 
-    import google.generativeai as genai
-    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-    model = genai.GenerativeModel(
-        os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
-    )
+    from google import genai
+    client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 
     # Score SOC triage
     soc_prompt = f"""You are an expert SOC quality evaluator.
@@ -71,7 +66,10 @@ Respond ONLY with JSON:
   "feedback": "Brief feedback on what was good and what was missed"
 }}"""
 
-    soc_response = model.generate_content(soc_prompt)
+    soc_response = client.models.generate_content(
+        model=model_name,
+        contents=soc_prompt
+    )
     soc_raw = soc_response.text.strip()
     if soc_raw.startswith("```"):
         soc_raw = soc_raw.split("```")[1]
@@ -109,7 +107,10 @@ Respond ONLY with JSON:
   "feedback": "Brief feedback on what was covered and what was missed"
 }}"""
 
-        dfir_response = model.generate_content(dfir_prompt)
+        dfir_response = client.models.generate_content(
+            model=model_name,
+            contents=dfir_prompt
+        )
         dfir_raw = dfir_response.text.strip()
         if dfir_raw.startswith("```"):
             dfir_raw = dfir_raw.split("```")[1]
@@ -161,3 +162,5 @@ Respond ONLY with JSON:
         "dfir_feedback": dfir_feedback,
         "confidence_drift": drift
     }
+
+

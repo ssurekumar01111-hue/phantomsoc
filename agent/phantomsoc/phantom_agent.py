@@ -3,11 +3,9 @@ import json
 import uuid
 from datetime import datetime
 from dotenv import load_dotenv
-import google.generativeai as genai
 from agent.phantomsoc.memory import InvestigationMemory
 
 load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 
 def load_playbook(path: str) -> dict:
@@ -131,12 +129,13 @@ Perform your investigation and respond ONLY with a JSON object:
 
     # Step 5 — Call Gemini for forensic investigation
     print("\n[Phantom] Running forensic investigation via Gemini...")
-    import google.generativeai as genai
-    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-    model = genai.GenerativeModel(
-        os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+    from google import genai
+    client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+    response = client.models.generate_content(
+        model=model_name,
+        contents=prompt
     )
-    response = model.generate_content(prompt)
     raw = response.text.strip()
     if raw.startswith("```"):
         raw = raw.split("```")[1]
@@ -179,7 +178,10 @@ RECOMMENDED ACTIONS: (numbered list, 4-5 items)
 
 Keep it under 250 words. Write for a non-technical executive audience."""
 
-    exec_response = model.generate_content(exec_prompt)
+    exec_response = client.models.generate_content(
+        model=model_name,
+        contents=exec_prompt
+    )
     executive_report = exec_response.text.strip()
 
     print("\n" + "-"*60)
@@ -189,11 +191,9 @@ Keep it under 250 words. Write for a non-technical executive audience."""
     print("-"*60)
 
     # Step 8 — Save executive report
-    os.makedirs("reports/executive", exist_ok=True)
-    report_path = f"reports/executive/{investigation_id}.txt"
-    with open(report_path, "w") as f:
-        f.write(executive_report)
-    print(f"\n[Phantom] Executive report saved → {report_path}")
+    from agent.core.storage import save_report
+    report_url = save_report(investigation_id, executive_report)
+    print(f"\n[Phantom] Executive report saved → {report_url}")
 
     # Step 9 — Add memory references from related cases
     report["memory_references"] = [c["id"] for c in related_cases]

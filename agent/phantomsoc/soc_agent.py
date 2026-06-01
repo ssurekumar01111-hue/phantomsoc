@@ -1,11 +1,9 @@
 import os
 import json
 from dotenv import load_dotenv
-import google.generativeai as genai
 from agent.phantomsoc.memory import InvestigationMemory
 
 load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 
 def load_playbook(path: str) -> dict:
@@ -111,12 +109,13 @@ Respond ONLY with a JSON object in this exact format:
 
     # Step 4 — Call Gemini
     print("\n[SOC] Running Gemini analysis...")
-    import google.generativeai as genai
-    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-    model = genai.GenerativeModel(
-        os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+    from google import genai
+    client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+    response = client.models.generate_content(
+        model=model_name,
+        contents=prompt
     )
-    response = model.generate_content(prompt)
     raw = response.text.strip()
 
     # Step 5 — Parse response

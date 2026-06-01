@@ -2,11 +2,9 @@ import os
 import json
 import glob
 from dotenv import load_dotenv
-import google.generativeai as genai
 from agent.phantomsoc.memory import InvestigationMemory
 
 load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 
 def get_next_playbook_version(prefix: str) -> tuple[int, str]:
@@ -128,11 +126,9 @@ def run_learning_agent(memory: InvestigationMemory,
 
     # Step 5 — Ask Gemini to analyze and improve playbooks
     print("\n[Learning] Analyzing investigation blind spots...")
-    import google.generativeai as genai
-    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-    model = genai.GenerativeModel(
-        os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
-    )
+    from google import genai
+    client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 
     analysis_prompt = f"""You are an AI security operations researcher.
 Analyze this set of investigation quality scores and feedback.
@@ -188,7 +184,10 @@ Respond ONLY with JSON:
   ]
 }}"""
 
-    response = model.generate_content(analysis_prompt)
+    response = client.models.generate_content(
+        model=model_name,
+        contents=analysis_prompt
+    )
     raw = response.text.strip()
     if raw.startswith("```"):
         raw = raw.split("```")[1]
@@ -217,8 +216,8 @@ Respond ONLY with JSON:
             current_dfir.get("checklist", [])
         )
     }
-    with open(dfir_path, "w") as f:
-        json.dump(new_dfir, f, indent=2)
+    from agent.core.storage import save_playbook
+    save_playbook(f"dfir_v{dfir_v}.json", new_dfir)
     print(f"\n[Learning] ✓ DFIR playbook updated → {dfir_path}")
     print(f"           Changes:")
     for change in analysis["dfir_improvements"]:
@@ -230,8 +229,7 @@ Respond ONLY with JSON:
     new_soc["version"] = soc_v
     new_soc["generated_by"] = "learning_agent"
     new_soc["improvements"] = analysis["soc_improvements"]
-    with open(soc_path, "w") as f:
-        json.dump(new_soc, f, indent=2)
+    save_playbook(f"soc_rules_v{soc_v}.json", new_soc)
     print(f"\n[Learning] ✓ SOC rules updated → {soc_path}")
     print(f"           Changes:")
     for change in analysis["soc_improvements"]:
