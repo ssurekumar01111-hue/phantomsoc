@@ -2,53 +2,54 @@
   "version": 2,
   "description": "Updated by Learning Agent \u2014 v2",
   "generated_by": "learning_agent",
-  "trigger_reason": "The current instructions prioritize qualitative narrative generation over quantitative data validation, leading to superficial reporting that omits necessary technical breadcrumbs.",
+  "trigger_reason": "The current playbooks are too high-level and do not mandate explicit inclusion of evidence references or specific forensic artifacts, leading to 'lazy' investigations that rely on general patterns rather than granular incident proof.",
   "improvements": [
-    "Transition from broad category headings to 'Evidence-Validated Requirements' that must list the specific log sources (e.g., Sysmon Event ID 1, 3, 22) checked for each category.",
-    "Require an 'Evidence of Absence' section where the AI must explicitly cite which specific logs (e.g., Security.evtx, WMI logs) confirm a 'false' finding for lateral movement or persistence."
+    "Mandate specific sub-technique identification (e.g., T1078.002) for all MITRE mappings.",
+    "Require affirmative evidence for negative findings: Any check for persistence/lateral movement must list the specific artifacts reviewed (e.g., 'Checked WMI Event Consumers: No hits').",
+    "Add a mandatory 'Forensic Artifacts' section for PowerShell-related incidents, specifically requiring analysis of memory strings or script block logging (Event ID 4104)."
   ],
   "checklist": [
     {
       "category": "timeline",
       "required": true,
       "priority": 1,
-      "note": "Reconstruct chronological event sequence, explicitly linking each entry to a log source (e.g., Sysmon/Windows Event Log)."
+      "note": "Reconstruct chronological sequence; must link each event to its unique log timestamp and record ID."
     },
     {
       "category": "ioc_extraction",
       "required": true,
       "priority": 1,
-      "note": "Extract all IPs, domains, hashes, and PowerShell script blocks; mandate inclusion of file hashes and command-line arguments."
+      "note": "Extract all indicators and mandate cross-reference against Geo/ASN reputation services."
     },
     {
       "category": "attack_chain",
       "required": true,
       "priority": 1,
-      "note": "Map to MITRE ATT&CK, including specific Technique IDs and evidence references for each mapped stage."
+      "note": "Map to MITRE ATT&CK sub-techniques (e.g., T1059.001) with justification based on observable behavior."
+    },
+    {
+      "category": "memory_forensics",
+      "required": true,
+      "priority": 1,
+      "note": "For PowerShell/Scripting: Review memory strings or script block logs (Event ID 4104) to identify intent and de-obfuscated commands."
     },
     {
       "category": "lateral_movement",
       "required": true,
       "priority": 2,
-      "note": "Verify movement using EDR telemetry; if false, cite specific log sources reviewed (e.g., 4624/4625 login events)."
+      "note": "Verify lateral movement; must document specific artifacts checked (e.g., RDP logs, WMI, SMB traffic) even if result is negative."
     },
     {
       "category": "persistence",
       "required": true,
       "priority": 2,
-      "note": "Inspect Registry Run keys, Scheduled Tasks, WMI, and Service creation; report findings or state explicit log validation of non-existence."
+      "note": "Verify persistence; must document check of Run keys, Scheduled Tasks, WMI, and Services with evidence timestamp."
     },
     {
       "category": "exfiltration",
       "required": true,
       "priority": 2,
-      "note": "Assess data volume and destination; require ASN/Geographic lookup validation and external reputation check."
-    },
-    {
-      "category": "memory_forensics",
-      "required": true,
-      "priority": 2,
-      "note": "Perform memory artifact analysis, identifying suspicious injected code or unbacked memory regions."
+      "note": "Assess data volume and destination; calculate byte count and categorize destination ASN reputation."
     }
   ]
 }

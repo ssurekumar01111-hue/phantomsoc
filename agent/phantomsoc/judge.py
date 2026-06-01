@@ -45,6 +45,8 @@ def run_judge(soc_report: dict,
     print("LLM JUDGE — EVALUATION")
     print("="*60)
 
+    import google.generativeai as genai
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     model = genai.GenerativeModel(
         os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
     )

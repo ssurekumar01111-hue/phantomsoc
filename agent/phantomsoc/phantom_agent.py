@@ -131,6 +131,8 @@ Perform your investigation and respond ONLY with a JSON object:
 
     # Step 5 — Call Gemini for forensic investigation
     print("\n[Phantom] Running forensic investigation via Gemini...")
+    import google.generativeai as genai
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     model = genai.GenerativeModel(
         os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
     )

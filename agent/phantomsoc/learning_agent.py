@@ -128,6 +128,8 @@ def run_learning_agent(memory: InvestigationMemory,
 
     # Step 5 — Ask Gemini to analyze and improve playbooks
     print("\n[Learning] Analyzing investigation blind spots...")
+    import google.generativeai as genai
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     model = genai.GenerativeModel(
         os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
     )

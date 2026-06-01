@@ -12,9 +12,11 @@ if project_root not in sys.path:
 
 load_dotenv()
 
+# Initialize Phoenix tracing FIRST before any agent imports
 from agent.instrumentation import init_tracing
 tracer_provider = init_tracing()
 
+# Only import agents AFTER tracing is initialized
 from agent.phantomsoc.memory import InvestigationMemory
 from agent.phantomsoc.soc_agent import run_soc_agent
 from agent.phantomsoc.phantom_agent import run_phantom_agent

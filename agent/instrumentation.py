@@ -5,13 +5,7 @@ load_dotenv()
 
 
 def init_tracing():
-    from phoenix.otel import register
-    from opentelemetry import trace
-
-    # Set auth headers for Phoenix Cloud
     api_key = os.getenv("PHOENIX_API_KEY", "")
-    os.environ["PHOENIX_CLIENT_HEADERS"] = f"api_key={api_key}"
-
     endpoint = os.getenv(
         "PHOENIX_COLLECTOR_ENDPOINT",
         "https://app.phoenix.arize.com/v1/traces"
@@ -22,15 +16,20 @@ def init_tracing():
     print(f"[Phoenix] Project name  : {project}")
     print(f"[Phoenix] API key prefix: {api_key[:12]}...")
 
-    # Register Phoenix with auto instrumentation
+    # Set environment variables BEFORE any imports
+    os.environ["PHOENIX_CLIENT_HEADERS"] = f"api_key={api_key}"
+    os.environ["PHOENIX_COLLECTOR_ENDPOINT"] = endpoint
+
+    from phoenix.otel import register
+
     tracer_provider = register(
         project_name=project,
         endpoint=endpoint,
-        headers={"Authorization": f"Bearer {api_key}"},
+        headers={"api_key": api_key},
         auto_instrument=True,
     )
 
-    # Explicitly instrument google.generativeai (direct Gemini calls)
+    # Instrument google-genai BEFORE genai.configure() is called
     try:
         from openinference.instrumentation.google_genai import (
             GoogleGenAIInstrumentor,
@@ -39,10 +38,10 @@ def init_tracing():
             tracer_provider=tracer_provider
         )
         print("[Phoenix] GoogleGenAI instrumentor active")
-    except ImportError:
-        print("[Phoenix] WARNING: google-genai instrumentor not found")
+    except Exception as e:
+        print(f"[Phoenix] WARNING: google-genai instrumentor failed: {e}")
 
-    # Explicitly instrument Google ADK if used
+    # Instrument Google ADK
     try:
         from openinference.instrumentation.google_adk import (
             GoogleADKInstrumentor,
@@ -51,8 +50,8 @@ def init_tracing():
             tracer_provider=tracer_provider
         )
         print("[Phoenix] GoogleADK instrumentor active")
-    except ImportError:
-        print("[Phoenix] WARNING: google-adk instrumentor not found")
+    except Exception as e:
+        print(f"[Phoenix] WARNING: google-adk instrumentor failed: {e}")
 
     print("[Phoenix] Tracing initialized successfully")
     return tracer_provider

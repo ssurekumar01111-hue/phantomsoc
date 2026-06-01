@@ -33,7 +33,8 @@
   "false_positive_threshold": 20,
   "generated_by": "learning_agent",
   "improvements": [
-    "Mandate the inclusion of specific technical evidence fields in all alerts, requiring the output to display IP/ASN reputation lookup results and country-of-origin metadata for all external connections.",
-    "Implement a mandatory 'Contextual History' block that requires cross-referencing the current investigation ID against previous ticket memories or known baseline behaviors."
+    "Mandate the inclusion of specific evidence snippets (Source IP, User ID, Timestamp) for any investigation score above 60.",
+    "Add a mandatory 'Contextual Enrichment' step requiring documentation of ASN/Geo reputation lookups for all external connections identified in the alert.",
+    "Introduce a 'Critical Evidence Link' requirement: Escalate status must be coupled with an array of specific log UIDs or evidence objects to prevent vague justifications."
   ]
 }
