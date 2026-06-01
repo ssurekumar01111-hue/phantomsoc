@@ -22,40 +22,48 @@ from agent.phantomsoc.judge import run_judge
 from agent.phantomsoc.learning_agent import run_learning_agent
 
 
+from opentelemetry import trace
+
 def run_investigation(alert, memory, judge_results):
-    soc_report = run_soc_agent(alert, memory)
-    if soc_report["decision"] != "ESCALATE":
-        return {"decision": soc_report["decision"],
-                "alert_id": alert["alert_id"]}
-    phantom_report = run_phantom_agent(alert, soc_report, memory)
-    judge_result = run_judge(soc_report, phantom_report)
-    judge_results.append(judge_result)
-    memory.store({
-        "investigation_id": phantom_report["investigation_id"],
-        "alert_id": alert["alert_id"],
-        "timestamp": alert["timestamp"],
-        "severity": phantom_report.get("severity", "UNKNOWN"),
-        "attack_pattern": alert["event_type"],
-        "agent_confidence": phantom_report.get("agent_confidence", 0.0),
-        "judge_score": judge_result.get("dfir_quality_score")
-                       or judge_result.get("soc_quality_score", 0.0),
-        "confidence_drift": judge_result["confidence_drift"]["drift"],
-        "playbook_version": phantom_report.get("playbook_version", "v1"),
-        "summary": (f"{alert['event_type']} from "
-                    f"{alert['source_ip']} — "
-                    f"severity={phantom_report.get('severity','UNKNOWN')}"),
-        "iocs": phantom_report.get("iocs", {}),
-        "tactics_identified": soc_report.get("tactics_identified", [])
-    })
-    return {
-        "decision": "ESCALATE",
-        "investigation_id": phantom_report["investigation_id"],
-        "severity": phantom_report.get("severity"),
-        "dfir_score": judge_result.get("dfir_quality_score"),
-        "soc_score": judge_result.get("soc_quality_score"),
-        "drift": judge_result["confidence_drift"]["severity"],
-        "memory_references": phantom_report.get("memory_references", [])
-    }
+    tracer = trace.get_tracer("phantomsoc.server")
+    with tracer.start_as_current_span("phantomsoc_pipeline") as root:
+        root.set_attribute("alert.id", alert.get("alert_id",""))
+        root.set_attribute("alert.source_ip", alert.get("source_ip",""))
+        root.set_attribute("alert.event_type", alert.get("event_type",""))
+        
+        soc_report = run_soc_agent(alert, memory)
+        if soc_report["decision"] != "ESCALATE":
+            return {"decision": soc_report["decision"],
+                    "alert_id": alert["alert_id"]}
+        phantom_report = run_phantom_agent(alert, soc_report, memory)
+        judge_result = run_judge(soc_report, phantom_report)
+        judge_results.append(judge_result)
+        memory.store({
+            "investigation_id": phantom_report["investigation_id"],
+            "alert_id": alert["alert_id"],
+            "timestamp": alert["timestamp"],
+            "severity": phantom_report.get("severity", "UNKNOWN"),
+            "attack_pattern": alert["event_type"],
+            "agent_confidence": phantom_report.get("agent_confidence", 0.0),
+            "judge_score": judge_result.get("dfir_quality_score")
+                           or judge_result.get("soc_quality_score", 0.0),
+            "confidence_drift": judge_result["confidence_drift"]["drift"],
+            "playbook_version": phantom_report.get("playbook_version", "v1"),
+            "summary": (f"{alert['event_type']} from "
+                        f"{alert['source_ip']} — "
+                        f"severity={phantom_report.get('severity','UNKNOWN')}"),
+            "iocs": phantom_report.get("iocs", {}),
+            "tactics_identified": soc_report.get("tactics_identified", [])
+        })
+        return {
+            "decision": "ESCALATE",
+            "investigation_id": phantom_report["investigation_id"],
+            "severity": phantom_report.get("severity"),
+            "dfir_score": judge_result.get("dfir_quality_score"),
+            "soc_score": judge_result.get("soc_quality_score"),
+            "drift": judge_result["confidence_drift"]["severity"],
+            "memory_references": phantom_report.get("memory_references", [])
+        }
 
 
 class PhantomSOCHandler(BaseHTTPRequestHandler):

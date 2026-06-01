@@ -13,6 +13,8 @@ load_dotenv()
 from agent.instrumentation import init_tracing
 tracer_provider = init_tracing()
 
+from opentelemetry import trace
+
 from agent.phantomsoc.memory import InvestigationMemory
 from agent.phantomsoc.soc_agent import run_soc_agent
 from agent.phantomsoc.phantom_agent import run_phantom_agent

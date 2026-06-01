@@ -2,54 +2,53 @@
   "version": 2,
   "description": "Updated by Learning Agent \u2014 v2",
   "generated_by": "learning_agent",
-  "trigger_reason": "The investigation framework lacks mandatory 'evidence attachment' requirements and explicit memory analysis triggers, allowing the AI to bypass high-effort technical steps while focusing on high-level narrative summary.",
+  "trigger_reason": "The current instructions prioritize qualitative narrative generation over quantitative data validation, leading to superficial reporting that omits necessary technical breadcrumbs.",
   "improvements": [
-    "Mandate artifact evidence: Require specific file paths, memory acquisition logs, or system artifact timestamps as proof for any negative finding (e.g., 'Persistence not found' requires citation of examined Run keys).",
-    "Strict IOC extraction requirements: Enforce schema-validated capture of SHA-256 hashes for all executed scripts identified in the investigation.",
-    "Standardize timeline formatting: Require explicit ISO-8601 timestamps and UTC offset specification for all chain events."
+    "Transition from broad category headings to 'Evidence-Validated Requirements' that must list the specific log sources (e.g., Sysmon Event ID 1, 3, 22) checked for each category.",
+    "Require an 'Evidence of Absence' section where the AI must explicitly cite which specific logs (e.g., Security.evtx, WMI logs) confirm a 'false' finding for lateral movement or persistence."
   ],
   "checklist": [
     {
       "category": "timeline",
       "required": true,
       "priority": 1,
-      "note": "Reconstruct full chronological sequence with ISO-8601 timestamps and explicit UTC offsets."
+      "note": "Reconstruct chronological event sequence, explicitly linking each entry to a log source (e.g., Sysmon/Windows Event Log)."
     },
     {
       "category": "ioc_extraction",
       "required": true,
       "priority": 1,
-      "note": "Extract all IPs, domains, usernames, and mandatory SHA-256 hashes for all detected payloads/scripts."
-    },
-    {
-      "category": "memory_analysis",
-      "required": true,
-      "priority": 1,
-      "note": "Perform memory dump or analysis of volatility indicators; check for injected threads or anomalous handles."
+      "note": "Extract all IPs, domains, hashes, and PowerShell script blocks; mandate inclusion of file hashes and command-line arguments."
     },
     {
       "category": "attack_chain",
       "required": true,
       "priority": 1,
-      "note": "Map to MITRE ATT&CK; correlate with organization's historical investigation memory."
+      "note": "Map to MITRE ATT&CK, including specific Technique IDs and evidence references for each mapped stage."
     },
     {
       "category": "lateral_movement",
       "required": true,
       "priority": 2,
-      "note": "Check internal logs (e.g., Event ID 4624/4648); provide specific log IDs or artifacts as proof of presence or absence."
+      "note": "Verify movement using EDR telemetry; if false, cite specific log sources reviewed (e.g., 4624/4625 login events)."
     },
     {
       "category": "persistence",
       "required": true,
       "priority": 2,
-      "note": "Inspect Run keys, Scheduled Tasks, Startup, and WMI; provide specific object names as evidence of check completion."
+      "note": "Inspect Registry Run keys, Scheduled Tasks, WMI, and Service creation; report findings or state explicit log validation of non-existence."
     },
     {
       "category": "exfiltration",
       "required": true,
       "priority": 2,
-      "note": "Assess data volume, destination, and sensitivity; report network flow anomalies."
+      "note": "Assess data volume and destination; require ASN/Geographic lookup validation and external reputation check."
+    },
+    {
+      "category": "memory_forensics",
+      "required": true,
+      "priority": 2,
+      "note": "Perform memory artifact analysis, identifying suspicious injected code or unbacked memory regions."
     }
   ]
 }

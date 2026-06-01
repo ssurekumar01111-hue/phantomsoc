@@ -2,6 +2,8 @@ import os
 import json
 from dotenv import load_dotenv
 import google.generativeai as genai
+from opentelemetry import trace
+from opentelemetry.trace import Status, StatusCode
 
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -11,13 +13,13 @@ def detect_confidence_drift(investigation_id: str,
                              agent_confidence: float,
                              judge_score: float) -> dict:
     drift = round(agent_confidence - judge_score, 3)
-    if drift > 0.30:
+    if drift >= 0.30:
         severity = "CRITICAL"
         label = "Severe overconfidence — agent unreliable"
-    elif drift > 0.15:
+    elif drift >= 0.15:
         severity = "WARNING"
         label = "Moderate overconfidence — quality overstated"
-    elif drift < -0.15:
+    elif drift <= -0.15:
         severity = "INFO"
         label = "Underconfidence — agent undersells quality"
     else:
@@ -131,6 +133,23 @@ Respond ONLY with JSON:
     drift = detect_confidence_drift(inv_id, agent_conf, primary_score)
     print(f"\n[Judge] Confidence Drift  : {drift['drift']:+.3f} "
           f"— {drift['severity']} — {drift['label']}")
+
+    # Log evaluation scores back to Phoenix as span attributes
+    try:
+        tracer = trace.get_tracer("phantomsoc.judge")
+        with tracer.start_as_current_span("llm_judge_evaluation") as span:
+            span.set_attribute("eval.soc_quality_score", soc_score)
+            span.set_attribute("eval.dfir_quality_score", dfir_score or 0.0)
+            span.set_attribute("eval.confidence_drift", drift["drift"])
+            span.set_attribute("eval.drift_severity", drift["severity"])
+            span.set_attribute("eval.agent_confidence", agent_conf)
+            span.set_attribute("eval.investigation_id", inv_id)
+            span.set_attribute("eval.soc_feedback", soc_eval["feedback"])
+            if dfir_score:
+                span.set_attribute("eval.dfir_feedback", dfir_feedback)
+            print(f"[Phoenix] Judge scores logged to Phoenix span")
+    except Exception as e:
+        print(f"[Phoenix] Warning: could not log judge span: {e}")
 
     return {
         "investigation_id": inv_id,

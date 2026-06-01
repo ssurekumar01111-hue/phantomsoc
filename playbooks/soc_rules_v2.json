@@ -33,8 +33,7 @@
   "false_positive_threshold": 20,
   "generated_by": "learning_agent",
   "improvements": [
-    "Mandate enrichment fields: Force response schema to include 'ASN_Reputation_Check', 'Geolocation_Analysis', and 'Investigation_Context_Match_Rate'.",
-    "Add negative weighting: Apply a -20 penalty to the threat score if an investigation fails to reference prior incident memory or lookup history.",
-    "Require evidence citations for all high-risk triggers to prevent automated 'check-the-box' behavior."
+    "Mandate the inclusion of specific technical evidence fields in all alerts, requiring the output to display IP/ASN reputation lookup results and country-of-origin metadata for all external connections.",
+    "Implement a mandatory 'Contextual History' block that requires cross-referencing the current investigation ID against previous ticket memories or known baseline behaviors."
   ]
 }
