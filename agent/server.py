@@ -84,6 +84,18 @@ class PhantomSOCHandler(BaseHTTPRequestHandler):
             })
         elif self.path == "/health":
             self._send_json(200, {"status": "healthy"})
+        elif self.path == "/dashboard":
+            try:
+                with open("dashboard.html", "rb") as f:
+                    body = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html")
+                self.send_header("Content-Length", len(body))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(body)
+            except FileNotFoundError:
+                self._send_json(404, {"error": "Dashboard not found"})
         else:
             self._send_json(404, {"error": "Not found"})
 
