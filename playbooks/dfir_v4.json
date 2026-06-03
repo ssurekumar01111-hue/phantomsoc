@@ -1,0 +1,42 @@
+{
+  "version": 4,
+  "description": "Updated by Learning Agent \u2014 v4",
+  "generated_by": "learning_agent",
+  "trigger_reason": "The agent prioritizes narrative coherence and MITRE framework compliance over raw data validation, treating the investigation as a writing task rather than a forensic evidence retrieval task.",
+  "improvements": [
+    "Evidence-Linking Protocol: Every assertion in the summary must explicitly cite an Evidence Object ID (EOID) generated during the telemetry collection phase.",
+    "Negative Result Documentation requirement: 'Not found' assertions must include the specific source telemetry log (e.g., EID 4624, EID 4688) and the time window searched."
+  ],
+  "checklist": [
+    {
+      "category": "memory_references",
+      "required": true,
+      "priority": 1,
+      "note": "Mandatory cross-reference against previous INV-IDs; if no history exists, must document as 'First observed event'."
+    },
+    {
+      "category": "artifact_evidence",
+      "required": true,
+      "priority": 1,
+      "note": "Must include file hashes, process command lines, and specific registry path modifications for every mapped MITRE technique."
+    },
+    {
+      "category": "null_analysis",
+      "required": true,
+      "priority": 1,
+      "note": "When asserting 'not found', explicitly document: [Telemetry Source] + [Query Parameters] + [Start/End Time]."
+    },
+    {
+      "category": "external_context",
+      "required": true,
+      "priority": 2,
+      "note": "Include enrichment data: ASN reputation, geo-location, and threat intelligence feed matches for every external IP cited."
+    },
+    {
+      "category": "timeline",
+      "required": true,
+      "priority": 2,
+      "note": "Reconstruct chronological sequence using ISO 8601 (YYYY-MM-DD HH:MM:SS) linked to specific raw log signatures."
+    }
+  ]
+}

@@ -113,6 +113,10 @@ def run_investigation(alert, memory, judge_results):
             ),
             "executive_report": phantom_report.get(
                 "executive_report", ""
+            ),
+            "runbook": phantom_report.get("runbook", {}),
+            "runbook_gcs_path": phantom_report.get(
+                "runbook_gcs_path", ""
             )
         }
 
@@ -137,7 +141,8 @@ class PhantomSOCHandler(BaseHTTPRequestHandler):
                     "POST /demo": "Run full demo pipeline",
                     "GET /trend": "Quality scores over time",
                     "GET /metrics": "Aggregated system metrics",
-                    "GET /health": "Health check"
+                    "GET /health": "Health check",
+                    "GET /runbooks": "List all generated runbooks"
                 },
                 "phoenix_project": os.getenv(
                     "PHOENIX_PROJECT_NAME", "phantomsoc"
@@ -193,6 +198,17 @@ class PhantomSOCHandler(BaseHTTPRequestHandler):
                 self._send_json(500, {"error": str(e)})
         elif self.path == "/health":
             self._send_json(200, {"status": "healthy"})
+        elif self.path == "/runbooks":
+            try:
+                from agent.phantomsoc.runbook import list_runbooks
+                books = list_runbooks()
+                self._send_json(200, {
+                    "runbooks": books,
+                    "count": len(books)
+                })
+            except Exception as e:
+                self._send_json(500, {"error": str(e)})
+
         elif self.path == "/reports":
             try:
                 bucket_name = os.getenv("GCS_BUCKET", "")

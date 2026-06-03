@@ -1,0 +1,42 @@
+{
+  "version": 5,
+  "description": "Updated by Learning Agent \u2014 v5",
+  "generated_by": "learning_agent",
+  "trigger_reason": "The agent treats investigations as a 'writing task' rather than a 'forensic verification task,' prioritizing high-level MITRE synthesis over raw telemetry extraction and objective evidence validation.",
+  "improvements": [
+    "Mandate 'Telemetry Provenance': Any 'negative' assertion (e.g., no lateral movement) must be coupled with an Evidence Object ID (EOID) referencing the specific log source and duration.",
+    "Implement a 'Memory Analysis Failure' flag: If a memory dump cannot be retrieved, the report must explicitly classify findings as 'Limited' rather than 'Negative', triggering a mandatory human-in-the-loop review."
+  ],
+  "checklist": [
+    {
+      "category": "memory_references",
+      "required": true,
+      "priority": 1,
+      "note": "Mandatory cross-reference against previous INV-IDs; if no history exists, must document as 'First observed event'."
+    },
+    {
+      "category": "artifact_evidence",
+      "required": true,
+      "priority": 1,
+      "note": "Must include file hashes, process command lines, and registry paths; missing artifacts must trigger a 'Partial Analysis' warning."
+    },
+    {
+      "category": "null_analysis",
+      "required": true,
+      "priority": 1,
+      "note": "Explicitly document [Telemetry Source] + [Query Parameters] + [Start/End Time] for every 'Not found' assertion."
+    },
+    {
+      "category": "external_context",
+      "required": true,
+      "priority": 1,
+      "note": "Include enrichment: ASN reputation, geo-location, and risk-profile delta (Source vs Baseline) for all external IPs."
+    },
+    {
+      "category": "timeline",
+      "required": true,
+      "priority": 2,
+      "note": "Chronological sequence using ISO 8601 linked to Evidence Object IDs (EOIDs) to ensure traceability of every narrative event."
+    }
+  ]
+}

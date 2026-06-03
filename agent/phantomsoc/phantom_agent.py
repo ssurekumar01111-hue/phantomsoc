@@ -237,6 +237,31 @@ Keep it under 250 words. Write for a non-technical executive audience."""
         print(f"[Phantom] Warning: stakeholder reports failed: {e}")
         stakeholder_reports = {}
 
+    # Generate autonomous runbook
+    print("\n[Phantom] Generating autonomous runbook...")
+    try:
+        from agent.phantomsoc.runbook import (
+            generate_runbook,
+            save_runbook_to_gcs
+        )
+        runbook = generate_runbook(
+            alert, report, breach_risk
+        )
+        gcs_path = save_runbook_to_gcs(runbook)
+        report["runbook"] = runbook
+        report["runbook_gcs_path"] = gcs_path
+        phases = list(runbook.get("phases", {}).keys())
+        print(f"[Phantom] ✓ Runbook generated: "
+              f"{runbook.get('runbook_id')}")
+        print(f"[Phantom] ✓ Phases: "
+              f"{', '.join(phases)}")
+        print(f"[Phantom] ✓ Saved to GCS: {gcs_path}")
+    except Exception as e:
+        print(f"[Phantom] Warning: runbook generation "
+              f"failed: {e}")
+        report["runbook"] = {}
+        report["runbook_gcs_path"] = ""
+
     # Add to report
     report["breach_risk"] = breach_risk
     report["cost_impact"] = cost_impact

@@ -604,6 +604,72 @@
         Select a report above
       </div>
     </div>
+
+    <!-- Runbook Card -->
+    <div id="runbookCard" style="display:none; margin-top:16px;
+      background:#0a0f1a; border:1px solid #00b4d8;
+      border-radius:12px; padding:20px;">
+      <div style="display:flex; justify-content:space-between;
+        align-items:center; margin-bottom:16px;">
+        <span style="color:#00b4d8; font-weight:700;
+          font-size:16px;">📋 AUTONOMOUS RUNBOOK</span>
+        <span id="runbookId" style="color:#555;
+          font-size:12px;"></span>
+      </div>
+      <div id="runbookTitle" style="color:#fff;
+        font-size:14px; margin-bottom:16px;
+        font-weight:600;"></div>
+
+      <div style="display:flex; gap:8px; margin-bottom:16px;
+        flex-wrap:wrap;">
+        <button onclick="showPhase('immediate_containment')"
+          id="rbtn-immediate" style="padding:6px 12px;
+          border-radius:6px; border:1px solid #00b4d8;
+          background:#00b4d8; color:#000; cursor:pointer;
+          font-size:11px; font-weight:700;">
+          ⚡ Contain</button>
+        <button onclick="showPhase('investigation')"
+          id="rbtn-investigation" style="padding:6px 12px;
+          border-radius:6px; border:1px solid #444;
+          background:transparent; color:#aaa;
+          cursor:pointer; font-size:11px;">
+          🔍 Investigate</button>
+        <button onclick="showPhase('eradication')"
+          id="rbtn-eradication" style="padding:6px 12px;
+          border-radius:6px; border:1px solid #444;
+          background:transparent; color:#aaa;
+          cursor:pointer; font-size:11px;">
+          🧹 Eradicate</button>
+        <button onclick="showPhase('recovery')"
+          id="rbtn-recovery" style="padding:6px 12px;
+          border-radius:6px; border:1px solid #444;
+          background:transparent; color:#aaa;
+          cursor:pointer; font-size:11px;">
+          🔄 Recover</button>
+        <button onclick="showPhase('post_incident')"
+          id="rbtn-post" style="padding:6px 12px;
+          border-radius:6px; border:1px solid #444;
+          background:transparent; color:#aaa;
+          cursor:pointer; font-size:11px;">
+          📝 Post-Incident</button>
+      </div>
+
+      <div id="runbookPhaseContent" style="background:#0d0d0d;
+        border-radius:8px; padding:16px; min-height:100px;">
+        <div style="color:#555;">Select a phase above</div>
+      </div>
+
+      <div id="runbookGdpr" style="display:none;
+        margin-top:12px; background:#1a0a0a;
+        border:1px solid #ff4444; border-radius:8px;
+        padding:12px;">
+        <div style="color:#ff4444; font-weight:700;
+          font-size:12px; margin-bottom:8px;">
+          ⚠ GDPR ACTIONS REQUIRED</div>
+        <div id="runbookGdprList" style="color:#ccc;
+          font-size:12px;"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -890,12 +956,89 @@ function log(msg, cls='') {
   box.scrollTop = box.scrollHeight;
 }
 
+window._currentRunbook = {};
+
+function showPhase(phase) {
+  const rb = window._currentRunbook;
+  const phases = rb.phases || {};
+  const p = phases[phase];
+  if (!p) {
+    document.getElementById('runbookPhaseContent')
+      .innerHTML = '<div style="color:#555">Phase not available</div>';
+    return;
+  }
+
+  const phaseMap = {
+    'immediate_containment': 'rbtn-immediate',
+    'investigation': 'rbtn-investigation',
+    'eradication': 'rbtn-eradication',
+    'recovery': 'rbtn-recovery',
+    'post_incident': 'rbtn-post'
+  };
+
+  // Update button styles
+  Object.entries(phaseMap).forEach(([k, btnId]) => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    if (k === phase) {
+      btn.style.background = '#00b4d8';
+      btn.style.color = '#000';
+      btn.style.borderColor = '#00b4d8';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = '#aaa';
+      btn.style.borderColor = '#444';
+    }
+  });
+
+  const steps = (p.steps || []).map((s, i) =>
+    '<div style="display:flex;gap:12px;margin-bottom:10px;">'
+    + '<span style="color:#00b4d8;font-weight:700;'
+    + 'min-width:24px;">' + (i+1) + '.</span>'
+    + '<span style="color:#ccc;font-size:13px;'
+    + 'line-height:1.6;">' + s + '</span></div>'
+  ).join('');
+
+  document.getElementById('runbookPhaseContent').innerHTML =
+    '<div style="color:#888;font-size:11px;margin-bottom:12px;">'
+    + '⏱ ' + (p.time_target || '') + ' &nbsp;|&nbsp; 👤 '
+    + (p.owner || '') + '</div>'
+    + steps;
+}
+
+// Call this after receiving investigation result data:
+function updateRunbookUI(data) {
+  if (data.runbook && data.runbook.phases) {
+    window._currentRunbook = data.runbook;
+    document.getElementById('runbookId').textContent =
+      data.runbook.runbook_id || '';
+    document.getElementById('runbookTitle').textContent =
+      data.runbook.title || '';
+
+    // Show GDPR actions if required
+    const gdprActions = data.runbook.gdpr_actions || [];
+    if (gdprActions.length > 0) {
+      document.getElementById('runbookGdpr').style.display
+        = 'block';
+      document.getElementById('runbookGdprList').innerHTML =
+        gdprActions.map(a =>
+          '<div style="margin-bottom:4px;">• ' + a + '</div>'
+        ).join('');
+    }
+
+    showPhase('immediate_containment');
+    document.getElementById('runbookCard').style.display
+      = 'block';
+  }
+}
+
 function clearDemo() {
   document.getElementById('log').innerHTML = '<div class="log-line log-dim"># Ready — select a scenario and click RUN INVESTIGATION</div>';
   document.getElementById('result-box').classList.remove('vis');
   document.getElementById('riskCard').style.display = 'none';
   document.getElementById('costCard').style.display = 'none';
   document.getElementById('stakeholderCard').style.display = 'none';
+  document.getElementById('runbookCard').style.display = 'none';
   ['l1','l2','l3','l4'].forEach(l => setLayer(l,'idle'));
 }
 
@@ -956,13 +1099,14 @@ function showResult(data) {
   }
 
   if (data.stakeholder_reports &&
-      Object.keys(data.stakeholder_reports).length > 0) {
-    window._stakeholderReports = data.stakeholder_reports;
-    showStakeholder('soc_analyst');
-    document.getElementById('stakeholderCard')
-      .style.display = 'block';
+    Object.keys(data.stakeholder_reports).length > 0) {
+  window._stakeholderReports = data.stakeholder_reports;
+  showStakeholder('soc_analyst');
+  document.getElementById('stakeholderCard')
+    .style.display = 'block';
   }
-}
+  updateRunbookUI(data);
+  }
 
 function showStakeholder(type) {
   const reports = window._stakeholderReports;
