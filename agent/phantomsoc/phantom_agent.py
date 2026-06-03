@@ -211,7 +211,7 @@ Keep it under 250 words. Write for a non-technical executive audience."""
 
     # Cost impact based on this session (estimated)
     cost_impact = calculate_cost_impact(
-        total_alerts=3,
+        total_alerts=47,
         fp_count=1,
         real_count=2
     )
