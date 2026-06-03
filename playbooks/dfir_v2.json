@@ -2,54 +2,54 @@
   "version": 2,
   "description": "Updated by Learning Agent \u2014 v2",
   "generated_by": "learning_agent",
-  "trigger_reason": "The investigation logic is currently descriptive rather than evidentiary; it flags alerts based on thresholds but fails to execute mandatory verification steps or link findings to raw technical artifacts.",
+  "trigger_reason": "The investigative process relies on high-level summarization at the expense of evidentiary completeness, creating a 'hallucination-adjacent' workflow where conclusions are stated without supporting technical artifacts.",
   "improvements": [
-    "Enforce a 'Proof of Absence' requirement: Any negative claim (e.g., 'No lateral movement') must be supported by the specific logs or command outputs analyzed.",
-    "Require mandatory sub-technique mapping for every primary MITRE tactic identified.",
-    "Integrate a mandatory 'Memory Forensics' block that must be populated with specific findings or a 'No memory artifacts found' statement with time-range justification."
+    "Mandate the inclusion of an 'Evidence Source Array' in every report, requiring non-empty pointers to memory dumps, log indices, or network captures.",
+    "Implement an 'Evidence Validation' flag for all MITRE ATT&CK mappings, requiring a snippet of the raw log or forensic artifact that triggered the specific technique classification.",
+    "Introduce a strict 'Null Analysis' requirement: if lateral movement or persistence are marked 'not found', the report must explicitly state which log sources (e.g., Event ID 4624, 4688) were queried to reach that conclusion."
   ],
   "checklist": [
     {
       "category": "timeline",
       "required": true,
       "priority": 1,
-      "note": "Reconstruct chronological sequence including precise timestamps of cross-host communication."
+      "note": "Reconstruct full chronological sequence using timestamped source logs."
     },
     {
-      "category": "ioc_extraction",
+      "category": "evidence_validation",
       "required": true,
       "priority": 1,
-      "note": "Extract all IPs/Domains with reputation scores, and mandatory file hashes (SHA-256) for all executed binaries/scripts."
+      "note": "Provide raw log signatures, hashes, or memory artifacts for every asserted finding."
     },
     {
-      "category": "attack_chain",
+      "category": "mitre_mapping",
       "required": true,
       "priority": 1,
-      "note": "Map to MITRE ATT&CK tactics AND specific sub-techniques (e.g., T1059.001)."
+      "note": "Map to MITRE ATT&CK techniques; each mapping must link to specific evidence provided in the investigation."
     },
     {
       "category": "memory_forensics",
       "required": true,
       "priority": 1,
-      "note": "Analyze process memory/injected code. Must provide findings or explain why memory analysis was not applicable for the scope."
+      "note": "Execute memory analysis or state 'N/A' with justification if image was unavailable; define process trees and suspicious hooks."
     },
     {
       "category": "lateral_movement",
       "required": true,
       "priority": 2,
-      "note": "Verify movement using authentication logs/SMB share access. Negative claims must cite log sources (e.g., Event ID 4624/4648)."
+      "note": "Audit Event IDs 4624/4648/4672 or equivalent cloud provider logs; verify for non-existence."
     },
     {
       "category": "persistence",
       "required": true,
       "priority": 2,
-      "note": "Check Run keys, scheduled tasks, startup items, and WMI event subscriptions."
+      "note": "Enumerate Run keys, WMI event consumers, and Scheduled Tasks; provide path verification."
     },
     {
       "category": "exfiltration",
       "required": true,
       "priority": 2,
-      "note": "Assess data volume, destination, and sensitivity with provided evidence of netflow logs."
+      "note": "Quantify data volume and confirm destination ASN/IP reputation context."
     }
   ]
 }

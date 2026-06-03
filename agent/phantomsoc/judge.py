@@ -150,6 +150,22 @@ Respond ONLY with JSON:
             span.set_attribute("eval.soc_feedback", soc_eval["feedback"])
             if dfir_score:
                 span.set_attribute("eval.dfir_feedback", dfir_feedback)
+            
+            # Log breach risk to Phoenix if available
+            if phantom_report and phantom_report.get("breach_risk"):
+                br = phantom_report["breach_risk"]
+                try:
+                    span.set_attribute("breach.risk_score",
+                                       br.get("risk_score", 0))
+                    span.set_attribute("breach.financial_exposure_usd",
+                                       br.get("estimated_breach_cost_usd", 0))
+                    span.set_attribute("breach.affected_records",
+                                       br.get("affected_records", 0))
+                    span.set_attribute("breach.gdpr_required",
+                                       br.get("gdpr_72hr_deadline", False))
+                except Exception:
+                    pass
+            
             print(f"[Phoenix] Judge scores logged to Phoenix span")
     except Exception as e:
         print(f"[Phoenix] Warning: could not log judge span: {e}")

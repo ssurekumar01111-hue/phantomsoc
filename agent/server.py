@@ -55,7 +55,19 @@ def run_investigation(alert, memory, judge_results):
                         f"{alert['source_ip']} — "
                         f"severity={phantom_report.get('severity','UNKNOWN')}"),
             "iocs": phantom_report.get("iocs", {}),
-            "tactics_identified": soc_report.get("tactics_identified", [])
+            "tactics_identified": soc_report.get("tactics_identified", []),
+            "breach_risk_score": (
+                phantom_report.get("breach_risk", {})
+                .get("risk_score", 0)
+            ),
+            "financial_exposure_usd": (
+                phantom_report.get("breach_risk", {})
+                .get("estimated_breach_cost_usd", 0)
+            ),
+            "affected_records": (
+                phantom_report.get("breach_risk", {})
+                .get("affected_records", 0)
+            )
         })
         return {
             "decision": "ESCALATE",
@@ -86,12 +98,50 @@ class PhantomSOCHandler(BaseHTTPRequestHandler):
                 "endpoints": {
                     "POST /investigate": "Run investigation on alert",
                     "POST /demo": "Run full demo pipeline",
+                    "GET /trend": "Quality scores over time",
+                    "GET /metrics": "Aggregated system metrics",
                     "GET /health": "Health check"
                 },
                 "phoenix_project": os.getenv(
                     "PHOENIX_PROJECT_NAME", "phantomsoc"
                 )
             })
+        elif self.path == "/trend":
+            try:
+                memory = InvestigationMemory()
+                trend = memory.get_quality_trend(last_n=20)
+                memory.close()
+                self._send_json(200, {
+                    "trend": trend,
+                    "count": len(trend)
+                })
+            except Exception as e:
+                self._send_json(500, {"error": str(e)})
+
+        elif self.path == "/metrics":
+            try:
+                memory = InvestigationMemory()
+                trend = memory.get_quality_trend(last_n=20)
+                drift_history = memory.get_drift_history(last_n=20)
+                memory.close()
+                
+                scores = [t["judge_score"] for t in trend
+                          if t["judge_score"]]
+                exposures = [t["financial_exposure_usd"] for t in trend
+                             if t["financial_exposure_usd"]]
+                
+                self._send_json(200, {
+                    "total_investigations": len(trend),
+                    "avg_quality_score": (
+                        round(sum(scores)/len(scores), 3)
+                        if scores else 0
+                    ),
+                    "total_financial_exposure_usd": sum(exposures),
+                    "quality_trend": trend,
+                    "drift_history": drift_history
+                })
+            except Exception as e:
+                self._send_json(500, {"error": str(e)})
         elif self.path == "/health":
             self._send_json(200, {"status": "healthy"})
         elif self.path == "/reports":

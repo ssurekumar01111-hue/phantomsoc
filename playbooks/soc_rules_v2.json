@@ -33,8 +33,8 @@
   "false_positive_threshold": 20,
   "generated_by": "learning_agent",
   "improvements": [
-    "Mandate the inclusion of 'Evidence IDs' linked to the specific IP/ASN/Geo lookup services used during triage.",
-    "Add a 'Confidence Weighting' modifier: If contextual enrichment (Geo/ASN/Reputation) is missing, the threat score is capped at 40 regardless of other alerts.",
-    "Require an automated 'Technical Artifact Summary' block for all PowerShell detections, forcing the inclusion of SHA-256 hashes."
+    "Introduce a 'Mandatory Enrichment' gate requiring API-based IP/ASN reputation and geolocation lookups before finalizing the escalation triage.",
+    "Require an 'Investigation Memory' state variable in the triage context to prevent redundant/lost context across iterative investigation steps.",
+    "Adjust escalation criteria to require a 'Confidence Evidence Score' (CES) which mandates at least 3 distinct telemetry sources (logs, network, endpoint) before an escalation threshold can be met."
   ]
 }

@@ -26,7 +26,10 @@ class InvestigationMemory:
                 judge_score REAL,
                 confidence_drift REAL,
                 playbook_version TEXT,
-                summary TEXT
+                summary TEXT,
+                breach_risk_score INTEGER DEFAULT 0,
+                financial_exposure_usd INTEGER DEFAULT 0,
+                affected_records INTEGER DEFAULT 0
             );
 
             CREATE TABLE IF NOT EXISTS iocs (
@@ -50,7 +53,7 @@ class InvestigationMemory:
     def store(self, report: dict) -> None:
         self.conn.execute("""
             INSERT OR REPLACE INTO investigations VALUES
-            (?,?,?,?,?,?,?,?,?,?)
+            (?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             report.get("investigation_id"),
             report.get("alert_id"),
@@ -61,7 +64,10 @@ class InvestigationMemory:
             report.get("judge_score", 0.0),
             report.get("confidence_drift", 0.0),
             report.get("playbook_version", "v1"),
-            report.get("summary", "")
+            report.get("summary", ""),
+            report.get("breach_risk_score", 0),
+            report.get("financial_exposure_usd", 0),
+            report.get("affected_records", 0)
         ))
         for ioc in report.get("iocs", {}).get("ips", []):
             ioc_value = ioc.get("address") if isinstance(ioc, dict) else ioc
@@ -128,11 +134,37 @@ class InvestigationMemory:
             for r in rows
         ]
 
+    def get_quality_trend(self, last_n: int = 10) -> list[dict]:
+        """Returns investigation quality scores in chronological order."""
+        rows = self.conn.execute("""
+            SELECT id, timestamp, judge_score, agent_confidence,
+                   confidence_drift, breach_risk_score,
+                   financial_exposure_usd, playbook_version
+            FROM investigations
+            ORDER BY timestamp ASC
+            LIMIT ?
+        """, (last_n,)).fetchall()
+        return [
+            {
+                "id": r[0],
+                "timestamp": r[1],
+                "judge_score": r[2],
+                "agent_confidence": r[3],
+                "drift": r[4],
+                "breach_risk_score": r[5],
+                "financial_exposure_usd": r[6],
+                "playbook_version": r[7]
+            }
+            for r in rows
+        ]
+
     def _rows_to_dicts(self, rows) -> list[dict]:
         cols = ["id", "alert_id", "timestamp", "severity",
                 "attack_pattern", "agent_confidence",
                 "judge_score", "confidence_drift",
-                "playbook_version", "summary"]
+                "playbook_version", "summary",
+                "breach_risk_score", "financial_exposure_usd",
+                "affected_records"]
         return [dict(zip(cols, r)) for r in rows]
 
     def close(self):

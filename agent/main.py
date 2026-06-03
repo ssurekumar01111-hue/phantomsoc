@@ -81,7 +81,19 @@ def run_investigation(alert: dict,
             f"severity={phantom_report.get('severity','UNKNOWN')}"
         ),
         "iocs": phantom_report.get("iocs", {}),
-        "tactics_identified": soc_report.get("tactics_identified", [])
+        "tactics_identified": soc_report.get("tactics_identified", []),
+        "breach_risk_score": (
+            phantom_report.get("breach_risk", {})
+            .get("risk_score", 0)
+        ),
+        "financial_exposure_usd": (
+            phantom_report.get("breach_risk", {})
+            .get("estimated_breach_cost_usd", 0)
+        ),
+        "affected_records": (
+            phantom_report.get("breach_risk", {})
+            .get("affected_records", 0)
+        )
     })
 
     console.print(

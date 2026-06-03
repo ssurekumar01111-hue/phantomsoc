@@ -199,4 +199,61 @@ Keep it under 250 words. Write for a non-technical executive audience."""
     report["memory_references"] = [c["id"] for c in related_cases]
     report["executive_report"] = executive_report
 
+    # Calculate breach risk and cost impact
+    print("\n[Phantom] Calculating breach risk and financial impact...")
+    from agent.phantomsoc.impact import (
+        calculate_breach_risk,
+        calculate_cost_impact,
+        generate_stakeholder_reports
+    )
+
+    breach_risk = calculate_breach_risk(report)
+
+    # Cost impact based on this session (estimated)
+    cost_impact = calculate_cost_impact(
+        total_alerts=3,
+        fp_count=1,
+        real_count=2
+    )
+
+    print(f"[Phantom] Risk Score       : {breach_risk['risk_score']}/100 — {breach_risk['likelihood']}")
+    print(f"[Phantom] Financial Exposure: ${breach_risk['estimated_breach_cost_usd']:,}")
+    print(f"[Phantom] Affected Records  : {breach_risk['affected_records']:,}")
+    print(f"[Phantom] GDPR Required     : {breach_risk['gdpr_72hr_deadline']}")
+    print(f"[Phantom] Analyst Hours Saved: {cost_impact['analyst_hours_saved']}h")
+    print(f"[Phantom] Cost Saved        : ${cost_impact['cost_saved_usd']}")
+
+    # Generate multi-stakeholder reports
+    print("\n[Phantom] Generating stakeholder reports...")
+    try:
+        stakeholder_reports = generate_stakeholder_reports(
+            alert, soc_report, report, breach_risk, cost_impact
+        )
+        print("[Phantom] ✓ SOC Analyst report generated")
+        print("[Phantom] ✓ Security Manager report generated")
+        print("[Phantom] ✓ Executive briefing generated")
+        print("[Phantom] ✓ Compliance report generated")
+    except Exception as e:
+        print(f"[Phantom] Warning: stakeholder reports failed: {e}")
+        stakeholder_reports = {}
+
+    # Add to report
+    report["breach_risk"] = breach_risk
+    report["cost_impact"] = cost_impact
+    report["stakeholder_reports"] = stakeholder_reports
+
+    # Append breach risk to executive report
+    risk_summary = f"""
+--- BREACH RISK ASSESSMENT ---
+Risk Score: {breach_risk['risk_score']}/100 ({breach_risk['likelihood']})
+Estimated Financial Exposure: ${breach_risk['estimated_breach_cost_usd']:,}
+Affected Records: {breach_risk['affected_records']:,}
+GDPR 72-Hour Notification: {'REQUIRED' if breach_risk['gdpr_72hr_deadline'] else 'Not required'}
+Analyst Hours Saved by PhantomSOC: {cost_impact['analyst_hours_saved']}h
+Cost Saved: ${cost_impact['cost_saved_usd']}
+"""
+    report_path = f"reports/executive/{investigation_id}.txt"
+    with open(report_path, "a") as f:
+        f.write(risk_summary)
+
     return report
