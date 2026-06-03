@@ -333,6 +333,7 @@
   <div class="nav-tab" onclick="switchTab('demo')">LIVE DEMO</div>
   <div class="nav-tab" onclick="switchTab('architecture')">ARCHITECTURE</div>
   <div class="nav-tab" onclick="switchTab('metrics')">METRICS</div>
+  <div class="nav-tab" onclick="switchTab('trend')">📈 TREND</div>
   <div class="nav-tab" onclick="switchTab('traces')">PHOENIX TRACES</div>
 </nav>
 
@@ -486,6 +487,123 @@
       <span class="pill" id="res-badge"></span>
     </div>
     <div class="result-grid" id="res-grid"></div>
+
+    <!-- Breach Risk Card -->
+    <div id="riskCard" style="display:none; margin-top:16px;
+      background:#1a0a0a; border:1px solid #ff4444;
+      border-radius:12px; padding:20px;">
+      <div style="display:flex; justify-content:space-between;
+        align-items:center; margin-bottom:16px;">
+        <span style="color:#ff4444; font-weight:700;
+          font-size:16px;">⚠ BREACH RISK ASSESSMENT</span>
+        <span id="riskScore" style="font-size:28px;
+          font-weight:900; color:#ff4444;"></span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr;
+        gap:12px;">
+        <div style="background:#0d0d0d; border-radius:8px;
+          padding:12px;">
+          <div style="color:#888; font-size:11px;
+            margin-bottom:4px;">FINANCIAL EXPOSURE</div>
+          <div id="financialExposure" style="color:#ff6b6b;
+            font-size:20px; font-weight:700;"></div>
+        </div>
+        <div style="background:#0d0d0d; border-radius:8px;
+          padding:12px;">
+          <div style="color:#888; font-size:11px;
+            margin-bottom:4px;">AFFECTED RECORDS</div>
+          <div id="affectedRecords" style="color:#ff6b6b;
+            font-size:20px; font-weight:700;"></div>
+        </div>
+        <div style="background:#0d0d0d; border-radius:8px;
+          padding:12px;">
+          <div style="color:#888; font-size:11px;
+            margin-bottom:4px;">GDPR 72H NOTIFICATION</div>
+          <div id="gdprRequired" style="font-size:16px;
+            font-weight:700;"></div>
+        </div>
+        <div style="background:#0d0d0d; border-radius:8px;
+          padding:12px;">
+          <div style="color:#888; font-size:11px;
+            margin-bottom:4px;">LIKELIHOOD</div>
+          <div id="likelihood" style="font-size:16px;
+            font-weight:700; color:#ff9f43;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost Impact Card -->
+    <div id="costCard" style="display:none; margin-top:16px;
+      background:#0a1a0a; border:1px solid #00d084;
+      border-radius:12px; padding:20px;">
+      <div style="color:#00d084; font-weight:700;
+        font-size:16px; margin-bottom:16px;">
+        💰 ANALYST EFFICIENCY IMPACT
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr;
+        gap:12px;">
+        <div style="background:#0d0d0d; border-radius:8px;
+          padding:12px; text-align:center;">
+          <div style="color:#888; font-size:11px;
+            margin-bottom:4px;">HOURS SAVED</div>
+          <div id="hoursSaved" style="color:#00d084;
+            font-size:24px; font-weight:900;"></div>
+        </div>
+        <div style="background:#0d0d0d; border-radius:8px;
+          padding:12px; text-align:center;">
+          <div style="color:#888; font-size:11px;
+            margin-bottom:4px;">COST SAVED</div>
+          <div id="costSaved" style="color:#00d084;
+            font-size:24px; font-weight:900;"></div>
+        </div>
+        <div style="background:#0d0d0d; border-radius:8px;
+          padding:12px; text-align:center;">
+          <div style="color:#888; font-size:11px;
+            margin-bottom:4px;">FP REDUCTION</div>
+          <div id="fpReduction" style="color:#00d084;
+            font-size:24px; font-weight:900;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stakeholder Reports Card -->
+    <div id="stakeholderCard" style="display:none; margin-top:16px;
+      background:#0a0a1a; border:1px solid #6c5ce7;
+      border-radius:12px; padding:20px;">
+      <div style="color:#6c5ce7; font-weight:700;
+        font-size:16px; margin-bottom:16px;">
+        📋 STAKEHOLDER REPORTS
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:16px;
+        flex-wrap:wrap;">
+        <button onclick="showStakeholder('soc_analyst')"
+          id="btn-soc" style="padding:6px 14px;
+          border-radius:6px; border:1px solid #6c5ce7;
+          background:#6c5ce7; color:white; cursor:pointer;
+          font-size:12px;">SOC Analyst</button>
+        <button onclick="showStakeholder('security_manager')"
+          id="btn-mgr" style="padding:6px 14px;
+          border-radius:6px; border:1px solid #444;
+          background:transparent; color:#aaa;
+          cursor:pointer; font-size:12px;">
+          Security Manager</button>
+        <button onclick="showStakeholder('executive')"
+          id="btn-exec" style="padding:6px 14px;
+          border-radius:6px; border:1px solid #444;
+          background:transparent; color:#aaa;
+          cursor:pointer; font-size:12px;">Executive</button>
+        <button onclick="showStakeholder('compliance')"
+          id="btn-comp" style="padding:6px 14px;
+          border-radius:6px; border:1px solid #444;
+          background:transparent; color:#aaa;
+          cursor:pointer; font-size:12px;">Compliance</button>
+      </div>
+      <div id="stakeholderContent" style="background:#0d0d0d;
+        border-radius:8px; padding:16px; color:#ccc;
+        font-size:13px; line-height:1.7; min-height:80px;">
+        Select a report above
+      </div>
+    </div>
   </div>
 </div>
 
@@ -635,6 +753,38 @@
   </div>
 </div>
 
+<!-- ══════════ TREND ══════════ -->
+<div id="page-trend" class="page" style="display:none;">
+  <h2 style="color:#00b4d8; margin-bottom:8px;">
+    Learning Confidence Trend
+  </h2>
+  <p style="color:#888; margin-bottom:24px; font-size:13px;">
+    Investigation quality scores over time — powered by
+    Arize Phoenix traces and the Learning Meta-Agent.
+    Each point represents one investigation. The vertical
+    line shows when the Learning Agent updated playbooks.
+  </p>
+
+  <div style="text-align:center; margin-bottom:16px;">
+    <button onclick="loadTrend()"
+      style="padding:10px 24px; background:#00b4d8;
+      border:none; border-radius:8px; color:white;
+      font-weight:700; cursor:pointer; font-size:14px;">
+      Load Trend from Phoenix
+    </button>
+  </div>
+
+  <div id="trendChart" style="background:#0d0d0d;
+    border-radius:12px; padding:24px; min-height:200px;">
+    <div style="color:#555; text-align:center;
+      padding:40px;">
+      Click "Load Trend from Phoenix" to fetch live data
+    </div>
+  </div>
+
+  <div id="trendTable" style="margin-top:16px;"></div>
+</div>
+
 <!-- ══════════ PHOENIX TRACES ══════════ -->
 <div class="page" id="page-traces">
   <div class="card mb-1">
@@ -743,6 +893,9 @@ function log(msg, cls='') {
 function clearDemo() {
   document.getElementById('log').innerHTML = '<div class="log-line log-dim"># Ready — select a scenario and click RUN INVESTIGATION</div>';
   document.getElementById('result-box').classList.remove('vis');
+  document.getElementById('riskCard').style.display = 'none';
+  document.getElementById('costCard').style.display = 'none';
+  document.getElementById('stakeholderCard').style.display = 'none';
   ['l1','l2','l3','l4'].forEach(l => setLayer(l,'idle'));
 }
 
@@ -764,6 +917,81 @@ function showResult(data) {
   document.getElementById('res-grid').innerHTML = items.map(([l,v]) =>
     `<div><div class="result-item-label">${l}</div><div class="result-item-val">${v}</div></div>`
   ).join('');
+
+  // Store stakeholder reports globally
+  window._stakeholderReports = {};
+
+  // After receiving investigation result data (variable: data):
+  if (data.breach_risk) {
+    const br = data.breach_risk;
+    document.getElementById('riskScore').textContent =
+      br.risk_score + '/100 — ' + br.likelihood;
+    document.getElementById('financialExposure').textContent =
+      '$' + (br.estimated_breach_cost_usd || 0)
+      .toLocaleString();
+    document.getElementById('affectedRecords').textContent =
+      (br.affected_records || 0).toLocaleString();
+    const gdprEl = document.getElementById('gdprRequired');
+    if (br.gdpr_72hr_deadline) {
+      gdprEl.textContent = '⚠ REQUIRED';
+      gdprEl.style.color = '#ff4444';
+    } else {
+      gdprEl.textContent = '✓ Not required';
+      gdprEl.style.color = '#00d084';
+    }
+    document.getElementById('likelihood').textContent =
+      br.likelihood;
+    document.getElementById('riskCard').style.display = 'block';
+  }
+
+  if (data.cost_impact) {
+    const ci = data.cost_impact;
+    document.getElementById('hoursSaved').textContent =
+      ci.analyst_hours_saved + 'h';
+    document.getElementById('costSaved').textContent =
+      '$' + ci.cost_saved_usd;
+    document.getElementById('fpReduction').textContent =
+      ci.fp_reduction_pct + '%';
+    document.getElementById('costCard').style.display = 'block';
+  }
+
+  if (data.stakeholder_reports &&
+      Object.keys(data.stakeholder_reports).length > 0) {
+    window._stakeholderReports = data.stakeholder_reports;
+    showStakeholder('soc_analyst');
+    document.getElementById('stakeholderCard')
+      .style.display = 'block';
+  }
+}
+
+function showStakeholder(type) {
+  const reports = window._stakeholderReports;
+  if (!reports[type]) {
+    document.getElementById('stakeholderContent')
+      .innerHTML = 'Report not available';
+    return;
+  }
+  document.getElementById('stakeholderContent')
+    .innerHTML = reports[type].content
+    .replace(/\n/g, '<br>');
+
+  // Update button styles
+  ['soc_analyst','security_manager','executive','compliance']
+    .forEach(t => {
+      const btn = document.getElementById(
+        'btn-' + t.split('_')[0]
+      );
+      if (!btn) return;
+      if (t === type) {
+        btn.style.background = '#6c5ce7';
+        btn.style.color = 'white';
+        btn.style.borderColor = '#6c5ce7';
+      } else {
+        btn.style.background = 'transparent';
+        btn.style.color = '#aaa';
+        btn.style.borderColor = '#444';
+      }
+    });
 }
 
 async function runInv() {
@@ -819,6 +1047,120 @@ async function runInv() {
     ['l1','l2','l3','l4'].forEach(l=>setLayer(l,'idle'));
   }
   btn.disabled = false;
+}
+
+async function loadTrend() {
+  const chartDiv = document.getElementById('trendChart');
+  chartDiv.innerHTML =
+    '<div style="color:#555; text-align:center; padding:40px;">'
+    + 'Loading from Phoenix...'
+    + '</div>';
+
+  try {
+    const res = await fetch(
+      'https://phantomsoc-745097138732.us-central1.run.app/trend'
+    );
+    const data = await res.json();
+    const trend = data.trend || [];
+
+    if (trend.length === 0) {
+      chartDiv.innerHTML =
+        '<div style="color:#555; text-align:center;'
+        + ' padding:40px;">No investigations recorded yet.'
+        + ' Run scenarios in the DEMO tab first.</div>';
+      return;
+    }
+
+    // Draw bar chart using pure HTML/CSS
+    const maxScore = 1.0;
+    const bars = trend.map((inv, i) => {
+      const score = inv.judge_score || 0;
+      const pct = Math.round(score * 100);
+      const height = Math.round((score / maxScore) * 160);
+      const color = score >= 0.75 ? '#00d084'
+        : score >= 0.60 ? '#f9ca24' : '#ff4444';
+      const version = inv.playbook_version || 'v1';
+      const isV2 = version.includes('2') ||
+                   parseInt(version.replace(/\D/g,'')) >= 2;
+      return `
+        <div style="display:flex; flex-direction:column;
+          align-items:center; gap:4px; flex:1;
+          min-width:40px;">
+          <div style="font-size:11px; color:${color};
+            font-weight:700;">${pct}%</div>
+          <div style="width:100%; max-width:48px;
+            height:${height}px; background:${color};
+            border-radius:4px 4px 0 0;
+            border-bottom:${isV2 ? '3px solid #6c5ce7'
+              : '3px solid transparent'};
+            transition:height 0.3s;"></div>
+          <div style="font-size:10px; color:#555;
+            text-align:center;">#${i+1}</div>
+          <div style="font-size:9px; color:#6c5ce7;">
+            ${version}</div>
+        </div>`;
+    }).join('');
+
+    const avgScore = trend.reduce(
+      (s,t) => s + (t.judge_score||0), 0
+    ) / trend.length;
+    const firstScore = trend[0].judge_score || 0;
+    const lastScore = trend[trend.length-1].judge_score || 0;
+    const improvement = Math.round(
+      (lastScore - firstScore) * 100
+    );
+
+    chartDiv.innerHTML = `
+      <div style="display:flex; justify-content:space-between;
+        margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div style="text-align:center;">
+          <div style="color:#888; font-size:11px;">
+            FIRST INVESTIGATION</div>
+          <div style="color:#ff4444; font-size:22px;
+            font-weight:900;">
+            ${Math.round(firstScore*100)}%</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="color:#888; font-size:11px;">
+            IMPROVEMENT</div>
+          <div style="color:#00d084; font-size:22px;
+            font-weight:900;">
+            +${improvement}pp</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="color:#888; font-size:11px;">
+            LATEST INVESTIGATION</div>
+          <div style="color:#00d084; font-size:22px;
+            font-weight:900;">
+            ${Math.round(lastScore*100)}%</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="color:#888; font-size:11px;">
+            AVG QUALITY</div>
+          <div style="color:#00b4d8; font-size:22px;
+            font-weight:900;">
+            ${Math.round(avgScore*100)}%</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:flex-end;
+        gap:8px; height:200px; padding-bottom:8px;
+        border-bottom:1px solid #222;">
+        ${bars}
+      </div>
+      <div style="display:flex; gap:16px; margin-top:12px;
+        font-size:11px; color:#666;">
+        <span>🟣 Purple border = v2 playbook active</span>
+        <span>🟢 Green = above 75%</span>
+        <span>🟡 Yellow = 60-75%</span>
+        <span>🔴 Red = below 60%</span>
+      </div>`;
+
+  } catch(e) {
+    chartDiv.innerHTML =
+      '<div style="color:#ff4444; text-align:center;'
+      + ' padding:40px;">Error loading trend: '
+      + e.message + '</div>';
+  }
 }
 </script>
 </body>
