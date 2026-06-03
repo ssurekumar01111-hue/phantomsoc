@@ -2,54 +2,48 @@
   "version": 2,
   "description": "Updated by Learning Agent \u2014 v2",
   "generated_by": "learning_agent",
-  "trigger_reason": "The investigative process relies on high-level summarization at the expense of evidentiary completeness, creating a 'hallucination-adjacent' workflow where conclusions are stated without supporting technical artifacts.",
+  "trigger_reason": "The investigation agent is prioritizing mapping activities to high-level frameworks (MITRE) while neglecting low-level data validation and contextual historical lookups, resulting in 'summary-heavy' but 'evidence-light' reporting.",
   "improvements": [
-    "Mandate the inclusion of an 'Evidence Source Array' in every report, requiring non-empty pointers to memory dumps, log indices, or network captures.",
-    "Implement an 'Evidence Validation' flag for all MITRE ATT&CK mappings, requiring a snippet of the raw log or forensic artifact that triggered the specific technique classification.",
-    "Introduce a strict 'Null Analysis' requirement: if lateral movement or persistence are marked 'not found', the report must explicitly state which log sources (e.g., Event ID 4624, 4688) were queried to reach that conclusion."
+    "Add a mandatory 'Forensic Evidence Proof' section where specific file hashes and memory artifact strings must be explicitly cited to support conclusions.",
+    "Transition from binary 'check' status to a 'Evidence Requirement' status: Investigators must provide a specific data point or log ID to mark a checklist item as 'Complete'.",
+    "Integrate a 'Negative Confirmation' requirement for persistence checks\u2014the agent must explicitly state which persistence locations (WMI/Run Keys) were scanned and return 'None Found' rather than leaving status as 'Pending'."
   ],
   "checklist": [
     {
       "category": "timeline",
       "required": true,
       "priority": 1,
-      "note": "Reconstruct full chronological sequence using timestamped source logs."
+      "note": "Reconstruct full chronological sequence with integrated host-based log events and account behavioral baseline comparison."
     },
     {
-      "category": "evidence_validation",
+      "category": "ioc_extraction",
       "required": true,
       "priority": 1,
-      "note": "Provide raw log signatures, hashes, or memory artifacts for every asserted finding."
+      "note": "Extract all IPs, domains, hashes, usernames, and techniques; must include IP/ASN reputation scores for each remote host."
     },
     {
-      "category": "mitre_mapping",
+      "category": "attack_chain",
       "required": true,
       "priority": 1,
-      "note": "Map to MITRE ATT&CK techniques; each mapping must link to specific evidence provided in the investigation."
-    },
-    {
-      "category": "memory_forensics",
-      "required": true,
-      "priority": 1,
-      "note": "Execute memory analysis or state 'N/A' with justification if image was unavailable; define process trees and suspicious hooks."
-    },
-    {
-      "category": "lateral_movement",
-      "required": true,
-      "priority": 2,
-      "note": "Audit Event IDs 4624/4648/4672 or equivalent cloud provider logs; verify for non-existence."
+      "note": "Map to MITRE ATT&CK; must link each stage to specific evidence IDs (log entries/memory artifacts)."
     },
     {
       "category": "persistence",
       "required": true,
       "priority": 2,
-      "note": "Enumerate Run keys, WMI event consumers, and Scheduled Tasks; provide path verification."
+      "note": "Evidence-based check of Run keys, scheduled tasks, startup items, and WMI. Must document findings for all locations."
+    },
+    {
+      "category": "forensic_artifacts",
+      "required": true,
+      "priority": 1,
+      "note": "Mandatory extraction of volatile memory artifacts and script hashes (e.g., PowerShell script block logs) to validate execution claims."
     },
     {
       "category": "exfiltration",
       "required": true,
       "priority": 2,
-      "note": "Quantify data volume and confirm destination ASN/IP reputation context."
+      "note": "Assess data volume, destination geo-location, and sensitivity. Link to network flow logs."
     }
   ]
 }

@@ -33,8 +33,8 @@
   "false_positive_threshold": 20,
   "generated_by": "learning_agent",
   "improvements": [
-    "Introduce a 'Mandatory Enrichment' gate requiring API-based IP/ASN reputation and geolocation lookups before finalizing the escalation triage.",
-    "Require an 'Investigation Memory' state variable in the triage context to prevent redundant/lost context across iterative investigation steps.",
-    "Adjust escalation criteria to require a 'Confidence Evidence Score' (CES) which mandates at least 3 distinct telemetry sources (logs, network, endpoint) before an escalation threshold can be met."
+    "Mandate enrichment of external entities by requiring automated lookup of IP/ASN reputation against at least two threat intel sources before escalating.",
+    "Require the investigation object to include a mandatory 'Contextual Baseline' field that pulls the last 30 days of activity for the affected account to detect behavioral deviations.",
+    "Increase threat_score_weights for 'powershell_execution' and 'large_data_transfer' if historical baseline correlation yields no known previous occurrence."
   ]
 }
