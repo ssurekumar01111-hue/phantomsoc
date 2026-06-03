@@ -472,6 +472,14 @@
 
   <div class="flex-gap mb-1">
     <button class="btn btn-primary" id="run-btn" onclick="runInv()">▶ RUN INVESTIGATION</button>
+    <button onclick="triggerLearning()"
+      id="learnBtn"
+      style="padding:12px 24px; background:transparent;
+      border:2px solid #6c5ce7; border-radius:8px;
+      color:#6c5ce7; font-weight:700; cursor:pointer;
+      font-size:14px; margin-left:12px;">
+      ⚡ Trigger Learning Agent
+    </button>
     <button class="btn btn-sec" onclick="clearDemo()">CLEAR</button>
   </div>
 
@@ -999,6 +1007,47 @@ function log(msg, cls='') {
   line.innerHTML = `<span class="log-ts">[${ts}]</span> ${msg}`;
   box.appendChild(line);
   box.scrollTop = box.scrollHeight;
+}
+
+async function triggerLearning() {
+  const btn = document.getElementById('learnBtn');
+  const logDiv = document.getElementById('log');
+  
+  btn.disabled = true;
+  btn.textContent = '⚡ Learning Agent running...';
+  btn.style.opacity = '0.6';
+  
+  log('Learning Agent triggered manually...');
+  log('Querying Phoenix traces for blind spots...');
+  
+  try {
+    const res = await fetch(
+      BASE+'/learn',
+      { method: 'POST', headers: {'Content-Type': 'application/json'} }
+    );
+    const data = await res.json();
+    
+    if (data.status === 'skipped') {
+      log('⚠ ' + data.reason, 'warn');
+    } else {
+      log('✓ Learning Agent complete', 'ok');
+      log('Cases analyzed: ' + data.cases_analyzed, 'ok');
+      log('Avg DFIR score: ' + Math.round(data.avg_dfir_score * 100) + '%', 'ok');
+      if (data.top_blind_spots && data.top_blind_spots.length > 0) {
+        log('Blind spots found:', 'warn');
+        data.top_blind_spots.forEach(s => log('  • ' + s, 'dim'));
+      }
+      log('✓ DFIR playbook updated → ' + data.dfir_playbook_updated, 'ok');
+      log('✓ SOC playbook updated → ' + data.soc_playbook_updated, 'ok');
+      log('Reload TREND tab to see improvement', 'dim');
+    }
+  } catch(e) {
+    log('Error: ' + e.message, 'err');
+  }
+  
+  btn.disabled = false;
+  btn.textContent = '⚡ Trigger Learning Agent';
+  btn.style.opacity = '1';
 }
 
 window._currentRunbook = {};

@@ -26,6 +26,10 @@ from agent.phantomsoc.learning_agent import run_learning_agent
 
 from opentelemetry import trace
 
+# Global investigation counter for Learning Agent trigger
+_investigation_count = 0
+_session_judge_results = []
+
 def run_investigation(alert, memory, judge_results):
     tracer = trace.get_tracer("phantomsoc.server")
     with tracer.start_as_current_span("phantomsoc_pipeline") as root:
@@ -96,7 +100,7 @@ def run_investigation(alert, memory, judge_results):
         except Exception as e:
             print(f"[Trend] GCS save failed: {e}")
 
-        return {
+        result_dict = {
             "decision": "ESCALATE",
             "investigation_id": phantom_report["investigation_id"],
             "severity": phantom_report.get("severity"),
@@ -120,6 +124,47 @@ def run_investigation(alert, memory, judge_results):
             )
         }
 
+        # Track for Learning Agent
+        global _investigation_count, _session_judge_results
+        _investigation_count += 1
+        _session_judge_results.append(judge_result)
+
+        # Trigger Learning Agent every N real investigations
+        trigger_n = int(os.getenv("LEARNING_AGENT_TRIGGER_N", 3))
+        if _investigation_count % trigger_n == 0:
+            print(f"\n[Server] Investigation #{_investigation_count}"
+                  f" — triggering Learning Agent...")
+            try:
+                learning_report = run_learning_agent(
+                    memory, _session_judge_results
+                )
+                print(f"[Server] Learning Agent complete — "
+                      f"playbooks updated")
+                # Save learning report to GCS
+                try:
+                    from agent.core.storage import save_report
+                    import json
+                    from datetime import datetime
+                    report_content = (
+                        f"Learning Agent Report\n"
+                        f"Generated: {datetime.utcnow().isoformat()}\n"
+                        f"Cases analyzed: {learning_report.get('cases_analyzed')}\n"
+                        f"Avg DFIR score: {learning_report.get('avg_dfir_score')}\n"
+                        f"Blind spots: {learning_report.get('top_blind_spots')}\n"
+                        f"DFIR playbook: {learning_report.get('dfir_playbook_updated')}\n"
+                        f"SOC playbook: {learning_report.get('soc_playbook_updated')}\n"
+                    )
+                    save_report(
+                        f"learning-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}",
+                        report_content
+                    )
+                except Exception as e:
+                    print(f"[Server] Could not save learning report: {e}")
+            except Exception as e:
+                print(f"[Server] Learning Agent failed: {e}")
+
+        return result_dict
+
 
 class PhantomSOCHandler(BaseHTTPRequestHandler):
 
@@ -142,7 +187,8 @@ class PhantomSOCHandler(BaseHTTPRequestHandler):
                     "GET /trend": "Quality scores over time",
                     "GET /metrics": "Aggregated system metrics",
                     "GET /health": "Health check",
-                    "GET /runbooks": "List all generated runbooks"
+                    "GET /runbooks": "List all generated runbooks",
+                    "POST /learn": "Manually trigger Learning Agent"
                 },
                 "phoenix_project": os.getenv(
                     "PHOENIX_PROJECT_NAME", "phantomsoc"
@@ -257,6 +303,35 @@ class PhantomSOCHandler(BaseHTTPRequestHandler):
                 result = run_investigation(alert, memory, judge_results)
                 memory.close()
                 self._send_json(200, result)
+            except Exception as e:
+                self._send_json(500, {"error": str(e)})
+
+        elif self.path == "/learn":
+            try:
+                global _session_judge_results
+                memory = InvestigationMemory()
+                if not _session_judge_results:
+                    self._send_json(200, {
+                        "status": "skipped",
+                        "reason": "No investigations in current session yet. Run /investigate first."
+                    })
+                    memory.close()
+                    return
+                
+                print("\n[Server] Manual Learning Agent trigger via /learn")
+                learning_report = run_learning_agent(
+                    memory, _session_judge_results
+                )
+                memory.close()
+                self._send_json(200, {
+                    "status": "complete",
+                    "cases_analyzed": learning_report.get("cases_analyzed"),
+                    "avg_soc_score": learning_report.get("avg_soc_score"),
+                    "avg_dfir_score": learning_report.get("avg_dfir_score"),
+                    "top_blind_spots": learning_report.get("top_blind_spots"),
+                    "dfir_playbook_updated": learning_report.get("dfir_playbook_updated"),
+                    "soc_playbook_updated": learning_report.get("soc_playbook_updated")
+                })
             except Exception as e:
                 self._send_json(500, {"error": str(e)})
 
