@@ -862,7 +862,7 @@ let sel = 'a';
 
 function switchTab(t) {
   document.querySelectorAll('.nav-tab').forEach((el,i) => {
-    el.classList.toggle('active', ['overview','demo','architecture','metrics','traces','trend'][i] === t);
+    el.classList.toggle('active', ['overview','demo','architecture','metrics','trend','traces'][i] === t);
   });
   document.querySelectorAll('.page').forEach(el => {
     el.classList.toggle('active', el.id === 'page-'+t);
