@@ -1113,8 +1113,9 @@ async function loadTrend() {
       + firstScore + '%</div></div>'
       + '<div style="text-align:center"><div style="color:#888;'
       + 'font-size:11px;margin-bottom:4px">IMPROVEMENT</div>'
-      + '<div style="color:#00d084;font-size:28px;font-weight:900">+'
-      + improvement + 'pp</div></div>'
+      + '<div style="color:' + (improvement >= 0 ? '#00d084' : '#ff4444')
+      + ';font-size:28px;font-weight:900">'
+      + (improvement >= 0 ? '+' : '') + improvement + 'pp</div></div>'
       + '<div style="text-align:center"><div style="color:#888;'
       + 'font-size:11px;margin-bottom:4px">LATEST</div>'
       + '<div style="color:#00d084;font-size:28px;font-weight:900">'
