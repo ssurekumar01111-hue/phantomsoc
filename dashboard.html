@@ -1051,105 +1051,94 @@ async function runInv() {
 
 async function loadTrend() {
   const chartDiv = document.getElementById('trendChart');
+  if (!chartDiv) {
+    console.error('trendChart div not found');
+    return;
+  }
+
   chartDiv.innerHTML =
-    '<div style="color:#00b4d8; text-align:center; padding:40px;">'
-    + 'Loading from Phoenix...'
-    + '</div>';
+    '<div style="color:#00b4d8;text-align:center;padding:40px">'
+    + 'Loading from Phoenix...</div>';
 
   try {
     const res = await fetch(
       'https://phantomsoc-745097138732.us-central1.run.app/trend'
     );
     const data = await res.json();
-    console.log('Trend data:', data);
+    const trend = data.trend || [];
 
-    const trend = data.trend || data.data || [];
-
-    if (!trend || trend.length === 0) {
+    if (trend.length === 0) {
       chartDiv.innerHTML =
-        '<div style="color:#555; text-align:center; padding:40px;">'
-        + 'No investigations yet. Run scenarios in the DEMO tab first.'
+        '<div style="color:#555;text-align:center;padding:40px">'
+        + 'No investigations yet. Run scenarios in DEMO tab first.'
         + '</div>';
       return;
     }
 
     const firstScore = Math.round((trend[0].judge_score || 0) * 100);
     const lastScore = Math.round(
-      (trend[trend.length-1].judge_score || 0) * 100
+      (trend[trend.length - 1].judge_score || 0) * 100
     );
     const avgScore = Math.round(
-      trend.reduce((s,t) => s + (t.judge_score||0), 0)
+      trend.reduce((s, t) => s + (t.judge_score || 0), 0)
       / trend.length * 100
     );
     const improvement = lastScore - firstScore;
 
     const bars = trend.map((inv, i) => {
-      const score = inv.judge_score || 0;
-      const pct = Math.round(score * 100);
-      const heightPx = Math.max(20, Math.round(score * 160));
-      const color = score >= 0.75 ? '#00d084'
-        : score >= 0.60 ? '#f9ca24' : '#ff4444';
+      const pct = Math.round((inv.judge_score || 0) * 100);
+      const h = Math.max(20, Math.round(pct * 1.6));
+      const color = pct >= 75 ? '#00d084'
+        : pct >= 60 ? '#f9ca24' : '#ff4444';
       const ver = inv.playbook_version || 'v1';
-      const isV2plus = ver.replace(/\D/g,'') >= 2;
-      return `<div style="display:flex;flex-direction:column;
-        align-items:center;gap:4px;flex:1;min-width:48px;
-        max-width:80px;">
-        <div style="font-size:12px;color:${color};
-          font-weight:700;">${pct}%</div>
-        <div style="width:36px;height:${heightPx}px;
-          background:${color};border-radius:4px 4px 0 0;
-          border-bottom:3px solid ${isV2plus ? '#6c5ce7'
-            : 'transparent'};"></div>
-        <div style="font-size:10px;color:#666;">#${i+1}</div>
-        <div style="font-size:9px;color:#6c5ce7;">${ver}</div>
-      </div>`;
+      const isV2 = parseInt(ver.replace(/\D/g, '') || '1') >= 2;
+      return '<div style="display:flex;flex-direction:column;'
+        + 'align-items:center;gap:4px;flex:1;min-width:48px">'
+        + '<div style="font-size:12px;color:' + color
+        + ';font-weight:700">' + pct + '%</div>'
+        + '<div style="width:36px;height:' + h + 'px;background:'
+        + color + ';border-radius:4px 4px 0 0;border-bottom:3px solid '
+        + (isV2 ? '#6c5ce7' : 'transparent') + '"></div>'
+        + '<div style="font-size:10px;color:#666">#' + (i+1) + '</div>'
+        + '<div style="font-size:9px;color:#6c5ce7">' + ver + '</div>'
+        + '</div>';
     }).join('');
 
-    chartDiv.innerHTML = `
-      <div style="display:flex;justify-content:space-around;
-        margin-bottom:24px;flex-wrap:wrap;gap:12px;">
-        <div style="text-align:center;">
-          <div style="color:#888;font-size:11px;
-            margin-bottom:4px;">FIRST</div>
-          <div style="color:#ff4444;font-size:28px;
-            font-weight:900;">${firstScore}%</div>
-        </div>
-        <div style="text-align:center;">
-          <div style="color:#888;font-size:11px;
-            margin-bottom:4px;">IMPROVEMENT</div>
-          <div style="color:#00d084;font-size:28px;
-            font-weight:900;">+${improvement}pp</div>
-        </div>
-        <div style="text-align:center;">
-          <div style="color:#888;font-size:11px;
-            margin-bottom:4px;">LATEST</div>
-          <div style="color:#00d084;font-size:28px;
-            font-weight:900;">${lastScore}%</div>
-        </div>
-        <div style="text-align:center;">
-          <div style="color:#888;font-size:11px;
-            margin-bottom:4px;">AVERAGE</div>
-          <div style="color:#00b4d8;font-size:28px;
-            font-weight:900;">${avgScore}%</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:flex-end;
-        gap:8px;height:200px;padding:0 8px 8px;
-        border-bottom:1px solid #222;overflow:visible;">
-        ${bars}
-      </div>
-      <div style="display:flex;gap:20px;margin-top:12px;
-        font-size:11px;color:#555;flex-wrap:wrap;">
-        <span>🟣 Purple border = v2+ playbook</span>
-        <span>🟢 ≥75% quality</span>
-        <span>🟡 60-75%</span>
-        <span>🔴 below 60%</span>
-        <span style="color:#444;">Source: ${data.source || 'gcs'}</span>
-      </div>`;
+    chartDiv.innerHTML =
+      '<div style="display:flex;justify-content:space-around;'
+      + 'margin-bottom:24px;flex-wrap:wrap;gap:12px">'
+      + '<div style="text-align:center"><div style="color:#888;'
+      + 'font-size:11px;margin-bottom:4px">FIRST</div>'
+      + '<div style="color:#ff4444;font-size:28px;font-weight:900">'
+      + firstScore + '%</div></div>'
+      + '<div style="text-align:center"><div style="color:#888;'
+      + 'font-size:11px;margin-bottom:4px">IMPROVEMENT</div>'
+      + '<div style="color:#00d084;font-size:28px;font-weight:900">+'
+      + improvement + 'pp</div></div>'
+      + '<div style="text-align:center"><div style="color:#888;'
+      + 'font-size:11px;margin-bottom:4px">LATEST</div>'
+      + '<div style="color:#00d084;font-size:28px;font-weight:900">'
+      + lastScore + '%</div></div>'
+      + '<div style="text-align:center"><div style="color:#888;'
+      + 'font-size:11px;margin-bottom:4px">AVERAGE</div>'
+      + '<div style="color:#00b4d8;font-size:28px;font-weight:900">'
+      + avgScore + '%</div></div>'
+      + '</div>'
+      + '<div style="display:flex;align-items:flex-end;gap:8px;'
+      + 'height:200px;padding:0 8px 8px;border-bottom:1px solid #222;'
+      + 'overflow:visible">' + bars + '</div>'
+      + '<div style="display:flex;gap:20px;margin-top:12px;'
+      + 'font-size:11px;color:#555;flex-wrap:wrap">'
+      + '<span>🟣 Purple = v2+ playbook</span>'
+      + '<span>🟢 75%+</span><span>🟡 60-75%</span>'
+      + '<span>🔴 below 60%</span>'
+      + '<span>Source: ' + (data.source || 'gcs') + ' · '
+      + trend.length + ' investigations</span>'
+      + '</div>';
 
   } catch(e) {
     chartDiv.innerHTML =
-      '<div style="color:#ff4444;text-align:center;padding:40px;">'
+      '<div style="color:#ff4444;text-align:center;padding:40px">'
       + 'Error: ' + e.message + '</div>';
     console.error('Trend error:', e);
   }
