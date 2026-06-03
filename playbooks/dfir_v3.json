@@ -1,0 +1,42 @@
+{
+  "version": 3,
+  "description": "Updated by Learning Agent \u2014 v3",
+  "generated_by": "learning_agent",
+  "trigger_reason": "The agent prioritizes high-level summarization and MITRE mapping over the forensic rigor required for an audit trail, leading to 'hallucination-adjacent' reporting where conclusions lack the necessary granular evidence pointers.",
+  "improvements": [
+    "Implementation of 'Contextual Completeness' verification step: Before report generation, a secondary agent pass must verify that all 'not found' findings include the specific source/query used to prove the negative.",
+    "Strict ISO 8601 Timestamp enforcement: Mandate the inclusion of full date and time objects in all timeline narratives to eliminate ambiguity."
+  ],
+  "checklist": [
+    {
+      "category": "timeline",
+      "required": true,
+      "priority": 1,
+      "note": "Reconstruct full chronological sequence using full ISO 8601 timestamps (YYYY-MM-DD HH:MM:SS) for all events."
+    },
+    {
+      "category": "evidence_validation",
+      "required": true,
+      "priority": 1,
+      "note": "Mandatory inclusion of raw log signatures, file paths, and registry keys (e.g., Run keys, Temp directories) for all detected artifacts."
+    },
+    {
+      "category": "null_analysis",
+      "required": true,
+      "priority": 1,
+      "note": "When asserting 'not found' for lateral movement/persistence, must explicitly document the specific telemetry sources (e.g., EID 4624) queried."
+    },
+    {
+      "category": "mitre_mapping",
+      "required": true,
+      "priority": 1,
+      "note": "Link each MITRE ATT&CK technique to a specific evidentiary artifact pointer found in the investigation memory."
+    },
+    {
+      "category": "exfiltration",
+      "required": true,
+      "priority": 2,
+      "note": "Quantify data volume and provide explicit verification of destination IP/ASN reputation and geolocation."
+    }
+  ]
+}

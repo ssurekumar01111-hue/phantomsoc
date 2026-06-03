@@ -93,3 +93,53 @@ def load_playbooks_from_gcs():
                 print(f"[Storage] Loaded from GCS: {filename}")
     except Exception as e:
         print(f"[Storage] Could not load from GCS: {e}")
+
+def save_trend_entry(entry: dict) -> None:
+    """Append an investigation score entry to GCS trend log."""
+    import json
+    from datetime import datetime
+    bucket_name = os.getenv("GCS_BUCKET", "")
+    if not bucket_name:
+        return
+    try:
+        client = get_storage_client()
+        if not client:
+            return
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob("trend/log.json")
+        
+        # Read existing entries
+        try:
+            existing = json.loads(blob.download_as_text())
+        except Exception:
+            existing = []
+        
+        # Append new entry
+        existing.append({
+            **entry,
+            "recorded_at": datetime.utcnow().isoformat()
+        })
+        
+        # Keep last 50 entries
+        existing = existing[-50:]
+        
+        blob.upload_from_string(json.dumps(existing, indent=2))
+    except Exception as e:
+        print(f"[Storage] Trend save failed: {e}")
+
+
+def load_trend_entries() -> list:
+    """Load investigation score trend from GCS."""
+    import json
+    bucket_name = os.getenv("GCS_BUCKET", "")
+    if not bucket_name:
+        return []
+    try:
+        client = get_storage_client()
+        if not client:
+            return []
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob("trend/log.json")
+        return json.loads(blob.download_as_text())
+    except Exception:
+        return []

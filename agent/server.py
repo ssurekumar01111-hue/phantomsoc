@@ -69,6 +69,33 @@ def run_investigation(alert, memory, judge_results):
                 .get("affected_records", 0)
             )
         })
+        # Save to GCS trend log for persistence across restarts
+        try:
+            from agent.core.storage import save_trend_entry
+            save_trend_entry({
+                "id": phantom_report["investigation_id"],
+                "timestamp": alert.get("timestamp", ""),
+                "judge_score": (
+                    judge_result.get("dfir_quality_score") or
+                    judge_result.get("soc_quality_score", 0)
+                ),
+                "agent_confidence": phantom_report.get(
+                    "agent_confidence", 0
+                ),
+                "drift": judge_result["confidence_drift"]["drift"],
+                "breach_risk_score": phantom_report.get(
+                    "breach_risk", {}
+                ).get("risk_score", 0),
+                "financial_exposure_usd": phantom_report.get(
+                    "breach_risk", {}
+                ).get("estimated_breach_cost_usd", 0),
+                "playbook_version": phantom_report.get(
+                    "playbook_version", "v1"
+                )
+            })
+        except Exception as e:
+            print(f"[Trend] GCS save failed: {e}")
+
         return {
             "decision": "ESCALATE",
             "investigation_id": phantom_report["investigation_id"],
@@ -76,7 +103,17 @@ def run_investigation(alert, memory, judge_results):
             "dfir_score": judge_result.get("dfir_quality_score"),
             "soc_score": judge_result.get("soc_quality_score"),
             "drift": judge_result["confidence_drift"]["severity"],
-            "memory_references": phantom_report.get("memory_references", [])
+            "memory_references": phantom_report.get(
+                "memory_references", []
+            ),
+            "breach_risk": phantom_report.get("breach_risk", {}),
+            "cost_impact": phantom_report.get("cost_impact", {}),
+            "stakeholder_reports": phantom_report.get(
+                "stakeholder_reports", {}
+            ),
+            "executive_report": phantom_report.get(
+                "executive_report", ""
+            )
         }
 
 
@@ -108,13 +145,25 @@ class PhantomSOCHandler(BaseHTTPRequestHandler):
             })
         elif self.path == "/trend":
             try:
-                memory = InvestigationMemory()
-                trend = memory.get_quality_trend(last_n=20)
-                memory.close()
-                self._send_json(200, {
-                    "trend": trend,
-                    "count": len(trend)
-                })
+                from agent.core.storage import load_trend_entries
+                # Try GCS first for persistence
+                gcs_trend = load_trend_entries()
+                if gcs_trend:
+                    self._send_json(200, {
+                        "trend": gcs_trend,
+                        "count": len(gcs_trend),
+                        "source": "gcs"
+                    })
+                else:
+                    # Fall back to local SQLite
+                    memory = InvestigationMemory()
+                    trend = memory.get_quality_trend(last_n=20)
+                    memory.close()
+                    self._send_json(200, {
+                        "trend": trend,
+                        "count": len(trend),
+                        "source": "local"
+                    })
             except Exception as e:
                 self._send_json(500, {"error": str(e)})
 
