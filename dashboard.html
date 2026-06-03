@@ -548,7 +548,7 @@
         font-size:16px; margin-bottom:16px;">
         💰 ANALYST EFFICIENCY IMPACT
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr;
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr);
         gap:12px;">
         <div style="background:#0d0d0d; border-radius:8px;
           padding:12px; text-align:center;">
@@ -569,6 +569,13 @@
           <div style="color:#888; font-size:11px;
             margin-bottom:4px;">FP REDUCTION</div>
           <div id="fpReduction" style="color:#00d084;
+            font-size:24px; font-weight:900;"></div>
+        </div>
+        <div style="background:#0d0d0d; border-radius:8px;
+          padding:12px; text-align:center;">
+          <div style="color:#888; font-size:11px;
+            margin-bottom:4px;">ROI MULTIPLIER</div>
+          <div id="roiMultiplier" style="color:#00d084;
             font-size:24px; font-weight:900;"></div>
         </div>
       </div>
@@ -879,9 +886,14 @@
   </h2>
   <p style="color:#888; margin-bottom:24px; font-size:13px;">
     Investigation quality scores over time — powered by
-    Arize Phoenix traces and the Learning Meta-Agent.
-    Each point represents one investigation. The vertical
-    line shows when the Learning Agent updated playbooks.
+    <span style="color:#6c5ce7; font-weight:600;">
+    Arize Phoenix traces</span> and the
+    <span style="color:#00d084; font-weight:600;">
+    Learning Meta-Agent</span>. Phoenix captures every
+    Gemini reasoning step → Judge evaluates quality →
+    Learning Agent queries Phoenix MCP for patterns →
+    Playbooks rewritten automatically. Each bar = one
+    investigation. Purple border = v2+ playbook active.
   </p>
 
   <div style="text-align:center; margin-bottom:16px;">
@@ -1189,6 +1201,8 @@ function showResult(data) {
       '$' + ci.cost_saved_usd;
     document.getElementById('fpReduction').textContent =
       ci.fp_reduction_pct + '%';
+    document.getElementById('roiMultiplier').textContent =
+      (ci.roi_multiplier || 0) + 'x';
     document.getElementById('costCard').style.display = 'block';
   }
 
