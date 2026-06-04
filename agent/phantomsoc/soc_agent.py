@@ -24,8 +24,8 @@ def run_soc_agent(alert: dict,
     print(f"[SOC] Source IP     : {alert['source_ip']}")
     print(f"[SOC] Event Type    : {alert['event_type']}")
     print(f"[SOC] Country/ASN   : "
-          f"{alert['geolocation']['country']} / "
-          f"{alert['geolocation']['asn']}")
+          f"{alert.get('geolocation', {}).get('country', 'Unknown')} / "
+          f"{alert.get('geolocation', {}).get('asn', 'Unknown')}")
 
     # Step 1 — Load SOC playbook
     playbook = load_playbook("playbooks/soc_rules_v1.json")
@@ -62,8 +62,8 @@ ALERT DETAILS:
 - Source IP: {alert['source_ip']}
 - Destination: {alert['destination']}
 - Event Type: {alert['event_type']}
-- Country: {alert['geolocation']['country']}
-- ASN: {alert['geolocation']['asn']}
+- Country: {alert.get('geolocation', {}).get('country', 'Unknown')}
+- ASN: {alert.get('geolocation', {}).get('asn', 'Unknown')}
 - Username: {alert['user_context']['username']}
 - Last Login: {alert['user_context']['last_login']}
 

@@ -82,8 +82,8 @@ ALERT DETAILS:
 - Source IP: {alert['source_ip']}
 - Destination: {alert['destination']}
 - Event Type: {alert['event_type']}
-- Country: {alert['geolocation']['country']}
-- ASN: {alert['geolocation']['asn']}
+- Country: {alert.get('geolocation', {}).get('country', 'Unknown')}
+- ASN: {alert.get('geolocation', {}).get('asn', 'Unknown')}
 - Username: {alert['user_context']['username']}
 
 RAW LOGS:
