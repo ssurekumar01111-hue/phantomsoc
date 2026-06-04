@@ -20,9 +20,9 @@ def run_soc_agent(alert: dict,
     print("\n" + "="*60)
     print("LAYER 1 — SOC TRIAGE AGENT")
     print("="*60)
-    print(f"[SOC] Alert ID      : {alert['alert_id']}")
-    print(f"[SOC] Source IP     : {alert['source_ip']}")
-    print(f"[SOC] Event Type    : {alert['event_type']}")
+    print(f"[SOC] Alert ID      : {alert.get('alert_id', 'Unknown')}")
+    print(f"[SOC] Source IP     : {alert.get('source_ip', 'Unknown')}")
+    print(f"[SOC] Event Type    : {alert.get('event_type', 'Unknown')}")
     print(f"[SOC] Country/ASN   : "
           f"{alert.get('geolocation', {}).get('country', 'Unknown')} / "
           f"{alert.get('geolocation', {}).get('asn', 'Unknown')}")
@@ -34,49 +34,49 @@ def run_soc_agent(alert: dict,
     # Step 2 — Query Investigation Memory
     print("\n[SOC] Querying investigation memory...")
     past_cases = memory.search(
-        iocs=[alert["source_ip"]],
-        attack_pattern=alert["event_type"]
+        iocs=[alert.get("source_ip", "")],
+        attack_pattern=alert.get("event_type", "")
     )
     memory_context = ""
     if past_cases:
         print(f"[SOC] ⚠ Memory hit — {len(past_cases)} past case(s) "
               f"found for this IOC")
         for c in past_cases:
-            print(f"      → {c['id']} | {c['severity']} | "
-                  f"{c['attack_pattern']}")
+            print(f"      → {c.get('id', 'Unknown')} | {c.get('severity', 'Unknown')} | "
+                  f"{c.get('attack_pattern', 'Unknown')}")
             memory_context += (
-                f"Past case {c['id']}: severity={c['severity']}, "
-                f"pattern={c['attack_pattern']}, "
-                f"summary={c['summary']}\n"
+                f"Past case {c.get('id', 'Unknown')}: severity={c.get('severity', 'Unknown')}, "
+                f"pattern={c.get('attack_pattern', 'Unknown')}, "
+                f"summary={c.get('summary', 'Unknown')}\n"
             )
     else:
         print("[SOC] No past cases found for this IOC")
 
     # Step 3 — Build Gemini prompt
-    raw_logs = "\n".join(alert["raw_logs"])
+    raw_logs = "\n".join(alert.get("raw_logs", []))
     prompt = f"""You are a Tier-1 SOC analyst performing alert triage.
 
 ALERT DETAILS:
-- Alert ID: {alert['alert_id']}
-- Timestamp: {alert['timestamp']}
-- Source IP: {alert['source_ip']}
-- Destination: {alert['destination']}
-- Event Type: {alert['event_type']}
+- Alert ID: {alert.get('alert_id', 'Unknown')}
+- Timestamp: {alert.get('timestamp', 'Unknown')}
+- Source IP: {alert.get('source_ip', 'Unknown')}
+- Destination: {alert.get('destination', 'Unknown')}
+- Event Type: {alert.get('event_type', 'Unknown')}
 - Country: {alert.get('geolocation', {}).get('country', 'Unknown')}
 - ASN: {alert.get('geolocation', {}).get('asn', 'Unknown')}
-- Username: {alert['user_context']['username']}
-- Last Login: {alert['user_context']['last_login']}
+- Username: {alert.get('user_context', {}).get('username', 'Unknown')}
+- Last Login: {alert.get('user_context', {}).get('last_login', 'Unknown')}
 
 RAW LOGS:
 {raw_logs}
 
 SOC RULES:
-- High risk ASNs: {playbook['high_risk_asns']}
-- High risk countries: {playbook['high_risk_countries']}
-- Authorized pentest ranges: {playbook['authorized_pentest_ranges']}
-- Threat score weights: {json.dumps(playbook['threat_score_weights'])}
-- Escalation threshold: {playbook['escalation_threshold']}
-- False positive threshold: {playbook['false_positive_threshold']}
+- High risk ASNs: {playbook.get('high_risk_asns', [])}
+- High risk countries: {playbook.get('high_risk_countries', [])}
+- Authorized pentest ranges: {playbook.get('authorized_pentest_ranges', [])}
+- Threat score weights: {json.dumps(playbook.get('threat_score_weights', {}))}
+- Escalation threshold: {playbook.get('escalation_threshold', 60)}
+- False positive threshold: {playbook.get('false_positive_threshold', 20)}
 
 PAST INVESTIGATION MEMORY:
 {memory_context if memory_context else "No prior cases found for this IOC."}
@@ -131,28 +131,28 @@ Respond ONLY with a JSON object in this exact format:
         print(f"      {step}")
 
     # Step 7 — Print decision
-    print(f"\n[SOC] Threat Score   : {result['threat_score']}/100")
-    print(f"[SOC] Confidence     : {result['agent_confidence']}")
-    print(f"[SOC] Decision       : {result['decision']}")
+    print(f"\n[SOC] Threat Score   : {result.get('threat_score', 0)}/100")
+    print(f"[SOC] Confidence     : {result.get('agent_confidence', 0.0)}")
+    print(f"[SOC] Decision       : {result.get('decision', 'UNKNOWN')}")
     if result.get("tactics_identified"):
         print(f"[SOC] Tactics        : "
-              f"{', '.join(result['tactics_identified'])}")
+              f"{', '.join(result.get('tactics_identified', []))}")
     if result.get("escalation_reason"):
-        print(f"[SOC] Reason         : {result['escalation_reason']}")
+        print(f"[SOC] Reason         : {result.get('escalation_reason', '')}")
     if result.get("false_positive_reason"):
-        print(f"[SOC] FP Reason      : {result['false_positive_reason']}")
+        print(f"[SOC] FP Reason      : {result.get('false_positive_reason', '')}")
 
     # Step 8 — Build final report
     report = {
-        "alert_id": alert["alert_id"],
-        "decision": result["decision"],
-        "threat_score": result["threat_score"],
-        "agent_confidence": result["agent_confidence"],
+        "alert_id": alert.get("alert_id", "Unknown"),
+        "decision": result.get("decision", "UNKNOWN"),
+        "threat_score": result.get("threat_score", 0),
+        "agent_confidence": result.get("agent_confidence", 0.0),
         "tactics_identified": result.get("tactics_identified", []),
-        "memory_references": [c["id"] for c in past_cases],
+        "memory_references": [c.get("id", "Unknown") for c in past_cases],
         "false_positive_reason": result.get("false_positive_reason"),
         "escalation_reason": result.get("escalation_reason"),
-        "playbook_version": f"soc_rules_v{playbook['version']}"
+        "playbook_version": f"soc_rules_v{playbook.get('version', '1')}"
     }
 
     return report

@@ -34,7 +34,7 @@ def run_phantom_agent(alert: dict,
 
     investigation_id = f"INV-{datetime.utcnow().strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
     print(f"[Phantom] Investigation ID : {investigation_id}")
-    print(f"[Phantom] Alert ID         : {alert['alert_id']}")
+    print(f"[Phantom] Alert ID         : {alert.get('alert_id', 'Unknown')}")
     print(f"[Phantom] Escalation Reason: {soc_report.get('escalation_reason', 'N/A')}")
 
     # Step 1 — Load DFIR playbook
@@ -44,32 +44,32 @@ def run_phantom_agent(alert: dict,
     # Step 2 — Query investigation memory for related cases
     print("\n[Phantom] Querying investigation memory...")
     related_cases = memory.get_related_cases(
-        iocs=[alert["source_ip"]],
-        attack_pattern=alert["event_type"],
+        iocs=[alert.get("source_ip", "")],
+        attack_pattern=alert.get("event_type", ""),
         limit=5
     )
     memory_context = ""
     if related_cases:
         print(f"[Phantom] ⚠ Found {len(related_cases)} related past case(s):")
         for c in related_cases:
-            print(f"          → {c['id']} | {c['severity']} | "
-                  f"pattern={c['attack_pattern']}")
+            print(f"          → {c.get('id', 'Unknown')} | {c.get('severity', 'Unknown')} | "
+                  f"pattern={c.get('attack_pattern', 'Unknown')}")
             memory_context += (
-                f"Related case {c['id']}: severity={c['severity']}, "
-                f"attack_pattern={c['attack_pattern']}, "
-                f"summary={c['summary']}\n"
+                f"Related case {c.get('id', 'Unknown')}: severity={c.get('severity', 'Unknown')}, "
+                f"attack_pattern={c.get('attack_pattern', 'Unknown')}, "
+                f"summary={c.get('summary', 'Unknown')}\n"
             )
     else:
         print("[Phantom] No related cases in memory")
 
     # Step 3 — Build checklist from playbook
     checklist = "\n".join([
-        f"- [{item['category'].upper()}] {item['note']} "
-        f"(priority={item['priority']}, required={item['required']})"
-        for item in playbook["checklist"]
+        f"- [{item.get('category', 'N/A').upper()}] {item.get('note', '')} "
+        f"(priority={item.get('priority', 1)}, required={item.get('required', False)})"
+        for item in playbook.get("checklist", [])
     ])
 
-    raw_logs = "\n".join(alert["raw_logs"])
+    raw_logs = "\n".join(alert.get("raw_logs", []))
 
     # Step 4 — Forensic investigation prompt
     prompt = f"""You are a Tier-2 DFIR (Digital Forensics and Incident Response) investigator.
@@ -77,20 +77,20 @@ Perform a complete forensic investigation of this escalated security incident.
 
 ALERT DETAILS:
 - Investigation ID: {investigation_id}
-- Alert ID: {alert['alert_id']}
-- Timestamp: {alert['timestamp']}
-- Source IP: {alert['source_ip']}
-- Destination: {alert['destination']}
-- Event Type: {alert['event_type']}
+- Alert ID: {alert.get('alert_id', 'Unknown')}
+- Timestamp: {alert.get('timestamp', 'Unknown')}
+- Source IP: {alert.get('source_ip', 'Unknown')}
+- Destination: {alert.get('destination', 'Unknown')}
+- Event Type: {alert.get('event_type', 'Unknown')}
 - Country: {alert.get('geolocation', {}).get('country', 'Unknown')}
 - ASN: {alert.get('geolocation', {}).get('asn', 'Unknown')}
-- Username: {alert['user_context']['username']}
+- Username: {alert.get('user_context', {}).get('username', 'Unknown')}
 
 RAW LOGS:
 {raw_logs}
 
 SOC TRIAGE FINDINGS:
-- Threat Score: {soc_report['threat_score']}/100
+- Threat Score: {soc_report.get('threat_score', 0)}/100
 - Tactics Identified: {soc_report.get('tactics_identified', [])}
 - Escalation Reason: {soc_report.get('escalation_reason', '')}
 
@@ -103,9 +103,9 @@ DFIR INVESTIGATION CHECKLIST — complete ALL required items:
 Perform your investigation and respond ONLY with a JSON object:
 {{
   "investigation_id": "{investigation_id}",
-  "alert_id": "{alert['alert_id']}",
+  "alert_id": "{alert.get('alert_id', 'Unknown')}",
   "agent_confidence": 0.88,
-  "playbook_version": "dfir_v{playbook['version']}",
+  "playbook_version": "dfir_v{playbook.get('version', '1')}",
   "memory_references": [],
   "timeline": [
     {{"time": "HH:MM:SS", "event": "Description of event"}}
@@ -146,7 +146,7 @@ Perform your investigation and respond ONLY with a JSON object:
     # Step 6 — Print investigation findings
     print(f"\n[Phantom] Timeline ({len(report.get('timeline', []))} events):")
     for event in report.get("timeline", []):
-        print(f"          {event['time']} — {event['event']}")
+        print(f"          {event.get('time', 'Unknown')} — {event.get('event', 'Unknown')}")
 
     print(f"\n[Phantom] IOCs Extracted:")
     iocs = report.get("iocs", {})
@@ -196,7 +196,7 @@ Keep it under 250 words. Write for a non-technical executive audience."""
     print(f"\n[Phantom] Executive report saved → {report_url}")
 
     # Step 9 — Add memory references from related cases
-    report["memory_references"] = [c["id"] for c in related_cases]
+    report["memory_references"] = [c.get("id", "Unknown") for c in related_cases]
     report["executive_report"] = executive_report
 
     # Calculate breach risk and cost impact
@@ -216,12 +216,12 @@ Keep it under 250 words. Write for a non-technical executive audience."""
         real_count=2
     )
 
-    print(f"[Phantom] Risk Score       : {breach_risk['risk_score']}/100 — {breach_risk['likelihood']}")
-    print(f"[Phantom] Financial Exposure: ${breach_risk['estimated_breach_cost_usd']:,}")
-    print(f"[Phantom] Affected Records  : {breach_risk['affected_records']:,}")
-    print(f"[Phantom] GDPR Required     : {breach_risk['gdpr_72hr_deadline']}")
-    print(f"[Phantom] Analyst Hours Saved: {cost_impact['analyst_hours_saved']}h")
-    print(f"[Phantom] Cost Saved        : ${cost_impact['cost_saved_usd']}")
+    print(f"[Phantom] Risk Score       : {breach_risk.get('risk_score', 0)}/100 — {breach_risk.get('likelihood', 'Unknown')}")
+    print(f"[Phantom] Financial Exposure: ${breach_risk.get('estimated_breach_cost_usd', 0):,}")
+    print(f"[Phantom] Affected Records  : {breach_risk.get('affected_records', 0):,}")
+    print(f"[Phantom] GDPR Required     : {breach_risk.get('gdpr_72hr_deadline', False)}")
+    print(f"[Phantom] Analyst Hours Saved: {cost_impact.get('analyst_hours_saved', 0)}h")
+    print(f"[Phantom] Cost Saved        : ${cost_impact.get('cost_saved_usd', 0)}")
 
     # Generate multi-stakeholder reports
     print("\n[Phantom] Generating stakeholder reports...")
@@ -252,7 +252,7 @@ Keep it under 250 words. Write for a non-technical executive audience."""
         report["runbook_gcs_path"] = gcs_path
         phases = list(runbook.get("phases", {}).keys())
         print(f"[Phantom] ✓ Runbook generated: "
-              f"{runbook.get('runbook_id')}")
+              f"{runbook.get('runbook_id', 'Unknown')}")
         print(f"[Phantom] ✓ Phases: "
               f"{', '.join(phases)}")
         print(f"[Phantom] ✓ Saved to GCS: {gcs_path}")
@@ -270,12 +270,12 @@ Keep it under 250 words. Write for a non-technical executive audience."""
     # Append breach risk to executive report
     risk_summary = f"""
 --- BREACH RISK ASSESSMENT ---
-Risk Score: {breach_risk['risk_score']}/100 ({breach_risk['likelihood']})
-Estimated Financial Exposure: ${breach_risk['estimated_breach_cost_usd']:,}
-Affected Records: {breach_risk['affected_records']:,}
-GDPR 72-Hour Notification: {'REQUIRED' if breach_risk['gdpr_72hr_deadline'] else 'Not required'}
-Analyst Hours Saved by PhantomSOC: {cost_impact['analyst_hours_saved']}h
-Cost Saved: ${cost_impact['cost_saved_usd']}
+Risk Score: {breach_risk.get('risk_score', 0)}/100 ({breach_risk.get('likelihood', 'Unknown')})
+Estimated Financial Exposure: ${breach_risk.get('estimated_breach_cost_usd', 0):,}
+Affected Records: {breach_risk.get('affected_records', 0):,}
+GDPR 72-Hour Notification: {'REQUIRED' if breach_risk.get('gdpr_72hr_deadline', False) else 'Not required'}
+Analyst Hours Saved by PhantomSOC: {cost_impact.get('analyst_hours_saved', 0)}h
+Cost Saved: ${cost_impact.get('cost_saved_usd', 0)}
 """
     report_path = f"reports/executive/{investigation_id}.txt"
     with open(report_path, "a") as f:
