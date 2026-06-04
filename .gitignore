@@ -1,10 +1,35 @@
-.env
-__pycache__/
-*.pyc
-venv/
-data/memory.db
-reports/
+# Database artifacts
 *.db
 *.sqlite
+*.sqlite3
+data/memory.db
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Auto-generated playbook versions (keep only v1)
+playbooks/dfir_v[2-9]*.json
+playbooks/dfir_v[0-9][0-9]*.json
+playbooks/soc_rules_v[2-9]*.json
+playbooks/soc_rules_v[0-9][0-9]*.json
+
+# Reports and local output
+reports/
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Miscellaneous
 test_phoenix.py
 .gemini/settings.json
