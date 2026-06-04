@@ -2,8 +2,11 @@ import os
 import sys
 import json
 import threading
+import re
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field, validator
+from typing import List, Optional
 
 # Ensure the project root is in sys.path so 'agent' can be imported as a module
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -11,6 +14,46 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 load_dotenv()
+
+class AlertInput(BaseModel):
+    alert_id: str = Field(..., min_length=1, max_length=100)
+    timestamp: str = Field(..., min_length=1, max_length=50)
+    source_ip: str = Field(..., max_length=50)
+    destination: Optional[str] = Field(None, max_length=200)
+    event_type: str = Field(..., max_length=100)
+    raw_logs: List[str] = Field(default_factory=list,
+                                max_items=1000)
+    geolocation: Optional[dict] = Field(default_factory=dict)
+    user_context: Optional[dict] = Field(default_factory=dict)
+
+    @validator('alert_id')
+    def sanitize_alert_id(cls, v):
+        # Prevent path traversal and injection
+        if re.search(r'[.]{2}|[/\\]|[<>"\']', v):
+            raise ValueError(
+                "alert_id contains invalid characters"
+            )
+        return v
+
+    @validator('source_ip')
+    def sanitize_ip(cls, v):
+        # Basic IP/hostname validation
+        if re.search(r'[<>"\']|\.\.', v):
+            raise ValueError("source_ip contains invalid characters")
+        return v
+
+    @validator('raw_logs')
+    def sanitize_logs(cls, logs):
+        # Truncate oversized log entries
+        return [log[:2000] for log in logs[:1000]]
+
+    @validator('event_type')
+    def sanitize_event_type(cls, v):
+        if re.search(r'[<>"\']|\.\.', v):
+            raise ValueError(
+                "event_type contains invalid characters"
+            )
+        return v
 
 # Initialize Phoenix tracing FIRST before any agent imports
 from agent.instrumentation import init_tracing
@@ -297,12 +340,23 @@ class PhantomSOCHandler(BaseHTTPRequestHandler):
 
         if self.path == "/investigate":
             try:
-                alert = json.loads(body)
+                raw_data = json.loads(body)
+                # Anti-Telemetry Poisoning Guardrail
+                alert = AlertInput(**raw_data).dict()
                 memory = InvestigationMemory()
                 judge_results = []
                 result = run_investigation(alert, memory, judge_results)
                 memory.close()
                 self._send_json(200, result)
+            except ValueError as ve:
+                self._send_json(400, {
+                    "error": "Input validation failed",
+                    "detail": str(ve)
+                })
+                return
+            except json.JSONDecodeError:
+                self._send_json(400, {"error": "Invalid JSON"})
+                return
             except Exception as e:
                 self._send_json(500, {"error": str(e)})
 
