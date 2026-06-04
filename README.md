@@ -97,7 +97,17 @@ Blind spots identified → Playbooks rewritten
       ↓
 Next investigation uses updated playbooks → scores improve
 ```
+## Why PhantomSOC Is Different
 
+Most AI SOC agents investigate incidents.
+
+PhantomSOC investigates, evaluates itself,
+queries historical trace data through Phoenix MCP,
+detects recurring blind spots,
+and automatically updates future investigation playbooks.
+
+It does not just automate security operations.
+It continuously improves them.
 ---
 
 ## Demo Results
@@ -107,7 +117,7 @@ Next investigation uses updated playbooks → scores improve
 | DFIR Quality Score | 58% | 77% | **+19 points** |
 | SOC Quality Score | 50% | 75% | **+25 points** |
 | Confidence Drift | CRITICAL | WARNING | **Improved** |
-| False Positive Filter | Manual | 100% automated | **Working** |
+| False Positive Filter | Manual | Automated triage | **Working** |
 | Investigation Memory | Inactive | Active — cases recalled | **Working** |
 | Playbook Version | v1 | v2 (auto-updated) | **Working** |
 | Analyst Hours Saved | — | 13.38h per session | **Working** |
